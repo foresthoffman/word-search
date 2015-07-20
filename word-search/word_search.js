@@ -18,7 +18,7 @@
 
 	jQuery(document).ready( function() {
 		jQuery.get( 
-			'../word-search.txt', 
+			'word-search.txt', 
 			function( data ) {
 				get_words( data );
 				create_display();

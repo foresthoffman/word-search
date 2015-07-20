@@ -10,8 +10,6 @@
 	var WORDS_TO_MATCH = [];
 	var WORDS_TO_MATCH_TRIMMED = [];
 	
-	// an object that holds objects that give the starting point and length of each matched word
-	var MATCH_POINTS = { 'points': [] };
 	var _LENGTH_OF_LONGEST_WORD = 0;
 	var _LENGTH_OF_SHORTEST_WORD = 0;
 	var _MAX_DIAGONAL_LENGTH = 0;
@@ -86,7 +84,7 @@
 		WORDS_TO_MATCH_TRIMMED.splice( index, 1 );
 	};
 
-	var found_word = function( row, column, word, match_type, color, background ) {
+	var found_word = function( row, column, word, match_type, color ) {
 		if ( "undefined" == typeof( color ) ) {
 			color = 'red';
 		}
@@ -122,7 +120,7 @@
 				var index_of_word = WORD_GRID_ROWS[ i ].indexOf( WORDS_TO_MATCH_TRIMMED[ x ] );
 				if ( -1 !== index_of_word ) {
 					console.log( 'Horizontal match for "' + WORDS_TO_MATCH[ x ] + '" on row ' + ( i + 1 ) + ' starting at letter #' + ( index_of_word + 1 ) );
-					found_word( i, index_of_word, WORDS_TO_MATCH_TRIMMED[ x ], 'horizontal' );
+					found_word( i, index_of_word, WORDS_TO_MATCH_TRIMMED[ x ], 'horizontal', 'red' );
 					remove_word_from_list( x );
 					break;
 				}
@@ -132,7 +130,7 @@
 				var index_of_word_reversed = WORD_GRID_ROWS[ i ].indexOf( word_reversed );
 				if ( -1 !== index_of_word_reversed ) {
 					console.log( 'Horizontal match (reversed) for "' + WORDS_TO_MATCH[ x ] + '" on row ' + ( i + 1 ) + ' starting at letter #' + ( index_of_word_reversed + 1 ) );
-					found_word( i, index_of_word_reversed, WORDS_TO_MATCH_TRIMMED[ x ], 'horizontal' );
+					found_word( i, index_of_word_reversed, WORDS_TO_MATCH_TRIMMED[ x ], 'horizontal', 'red' );
 					remove_word_from_list( x );
 					break;
 				}
@@ -207,7 +205,7 @@
 						var index_of_right_word = diagonal_right_string.indexOf( WORDS_TO_MATCH_TRIMMED[ z ] );
 						if ( -1 !== index_of_right_word ) {
 							console.log( 'Diagonal match (down and right) for "' + WORDS_TO_MATCH[ z ] + '" on row ' + ( i + 1 + index_of_right_word ) + ' starting at letter #' + ( x + 1 + index_of_right_word ) );
-							found_word( i + index_of_right_word, x + index_of_right_word, WORDS_TO_MATCH_TRIMMED[ z ], 'diagonal-right', 'yellow', 'repeating-linear-gradient( 45deg, #606dbc, #606dbc 10px, #465298 10px, #465298 20px )' );
+							found_word( i + index_of_right_word, x + index_of_right_word, WORDS_TO_MATCH_TRIMMED[ z ], 'diagonal-right', 'yellow' );
 							remove_word_from_list( z );
 						}
 					}
@@ -218,7 +216,7 @@
 						var index_of_right_word_reversed = diagonal_right_string.indexOf( right_word_reversed );
 						if ( -1 !== index_of_right_word_reversed ) {
 							console.log( 'Diagonal match (reversed, down and right) for "' + WORDS_TO_MATCH[ d ] + '" on row ' + ( i + 1 + index_of_right_word_reversed ) + ' starting at letter #' + ( x + 1 + index_of_right_word_reversed ) );
-							found_word( i + index_of_right_word_reversed, x + index_of_right_word_reversed, WORDS_TO_MATCH_TRIMMED[ d ], 'diagonal-right', 'yellow', 'repeating-linear-gradient( 45deg, #606dbc, #606dbc 10px, #465298 10px, #465298 20px )' );
+							found_word( i + index_of_right_word_reversed, x + index_of_right_word_reversed, WORDS_TO_MATCH_TRIMMED[ d ], 'diagonal-right', 'yellow' );
 							remove_word_from_list( d );
 						}
 					}
@@ -245,7 +243,7 @@
 						var index_of_left_word = diagonal_left_string.indexOf( WORDS_TO_MATCH_TRIMMED[ w ] );
 						if ( -1 !== index_of_left_word ) {
 							console.log( 'Diagonal match (reversed, down and left) for "' + WORDS_TO_MATCH[ w ] + '" on row ' + ( i + 1 + index_of_left_word ) + ' starting at letter #' + ( x + 1 - index_of_left_word ) );
-							found_word( i + index_of_left_word, x - index_of_left_word, WORDS_TO_MATCH_TRIMMED[ w ], 'diagonal-left', 'yellow', 'repeating-linear-gradient( -45deg, #606dbc, #606dbc 10px, #465298 10px, #465298 20px )' );
+							found_word( i + index_of_left_word, x - index_of_left_word, WORDS_TO_MATCH_TRIMMED[ w ], 'diagonal-left', 'yellow' );
 							remove_word_from_list( w );
 						}
 					}
@@ -256,7 +254,7 @@
 						var index_of_left_word_reversed = diagonal_left_string.indexOf( left_word_reversed );
 						if ( -1 !== index_of_left_word_reversed ) {
 							console.log( 'Diagonal match (down and left) for "' + WORDS_TO_MATCH[ v ] + '" on row ' + ( i + 1 + index_of_left_word_reversed ) + ' starting at letter #' + ( x + 1 - index_of_left_word_reversed ) );
-							found_word( i + index_of_left_word_reversed, x - index_of_left_word_reversed, WORDS_TO_MATCH_TRIMMED[ v ], 'diagonal-left', 'yellow', 'repeating-linear-gradient( -45deg, #606dbc, #606dbc 10px, #465298 10px, #465298 20px )' );
+							found_word( i + index_of_left_word_reversed, x - index_of_left_word_reversed, WORDS_TO_MATCH_TRIMMED[ v ], 'diagonal-left', 'yellow' );
 							remove_word_from_list( v );
 						}
 					}

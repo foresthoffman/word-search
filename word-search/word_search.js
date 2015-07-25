@@ -13,40 +13,166 @@
 	var _LENGTH_OF_LONGEST_WORD = 0;
 	var _LENGTH_OF_SHORTEST_WORD = 0;
 	var _MAX_DIAGONAL_LENGTH = 0;
+	var _GRID_ROW_COUNT = 0;
 	var _GRID_ROW_LENGTH = 0;
-	var _GRID_COL_LENGTH = 0;
 
-	jQuery(document).ready( function() {
+	// start the program when the page has been fully loaded
+	jQuery( document ).ready( function() {
 		jQuery.get( 
 			'word-search.txt', 
 			function( data ) {
-				get_words( data );
-				create_display();
-				search_for_words();
+				reset_display( data, 'file' );
 			}
 		);
+
+		jQuery( 'input[type="submit"]' ).click( function( e ) {
+			e.preventDefault();
+			if ( '' != document.forms['word_search_form']['word_grid'].value && 
+				 '' != document.forms['word_search_form']['word_list'].value 
+			) {
+				reset_display( [
+						document.forms['word_search_form']['word_grid'].value,
+						document.forms['word_search_form']['word_list'].value
+					],
+					'form' 
+				);
+			} else if ( '' == document.forms['word_search_form']['word_grid'].value &&
+						'' == document.forms['word_search_form']['word_list'].value
+			) {
+				display_error( 'empty', 'Enter a word grid and a list of words to search for.' );
+			} else if ( '' == document.forms['word_search_form']['word_grid'].value ) {
+				display_error( 'empty', 'Enter a word grid.' );
+			} else if ( '' == document.forms['word_search_form']['word_list'].value ) {
+				display_error( 'empty', 'Enter a list of words to search for.' );
+			} 
+		});
 	});
 
-	var get_words = function( file_data ) {
-		var regex = new RegExp( '(\\n){2}', 'g' );
-		var split_data = file_data.split( regex );
-		var word_grid_string = split_data[0];
-		var word_grid_rows = word_grid_string.split( "\n" );
+	var reset_display = function( data, data_type ) {
+		get_words( data, data_type );
+		create_display();
+		search_for_words();
+	};
+
+	var display_error = function( error, msg, label_type ) {
+		if ( 'empty' == error ) {
+			jQuery( '#word_search_form label' ).css( 'color', 'red' );
+		} else if ( 'non-alpha' == error || 'row-length' == error ) {
+			jQuery( '#word_search_form label[for="word_' + label_type + '"]' ).css( 'color', 'red' );
+		} else {
+			return;
+		}
+		alert( msg );
+	};
+
+	var validate_input = function( input, type ) {
+		if ( input.match( /[^a-zA-Z\s]/ ) ) {
+			display_error( 'non-alpha', 'Only letters and spaces are allowed in the ' + type + ' field.', type );
+			return;
+		}
+
+		// there are only letters and whitespace in the string, so reset
+		// the color of the labels
+		jQuery( '#word_search_form label[for="word_' + type + '"]' ).css( 'color', 'black' );
+		if ( 'grid' == type ) {
+
+			// holds the indices of rows that are not the same length
+			var inconsistent_rows = [];
+
+			// remove extraneous spaces at the beginning and end of the input,
+			// then remove the spaces before and after newlines,
+			// then add spaces between any adjacent letters,
+			// finally make the string uppercase.
+			var trimmed_input = input.trim().replace(
+				/\s+(?=\n)/g,
+				''
+			).replace(
+				/\n[^\S\n]+(?=[a-zA-Z])/g,
+				'\n'
+			).replace(
+				/[^\S\n]+(?=[a-zA-Z])/g,
+				' '
+			).replace(
+				/([a-zA-Z]){2,}/g,
+				function( match ) {
+					return match.split( '' ).join( ' ' );
+				} 
+			).toUpperCase();
+
+			// check the length of each row in the word grid, they should all be the same
+			var trimmed_input_array = trimmed_input.split( '\n' );
+			for ( var i = 0; i < trimmed_input_array.length; i++ ) {
+				if ( trimmed_input_array[ i ].length != trimmed_input_array[0].length ) {
+					inconsistent_rows.push( i + 1 );
+				}
+			}
+
+			if ( 0 != inconsistent_rows.length ) {
+				display_error( 'row-length', "The word grid's rows must be consistent. Check rows: " + inconsistent_rows.join( ', ' ), type );
+				return;
+			} else {
+				return trimmed_input;	
+			}
+		} else if ( 'list' == type ) {
+
+			// remove spaces from the element and remove any extra newline characters
+			var word_list = input.trim().replace(
+				/(\n){2,}/g,
+				'\n'
+			).replace(
+				/\s+(?=\n)/g,
+				''
+			).replace(
+				/\n[^\S\n]+(?=[a-zA-Z])/g,
+				'\n'
+			).replace(
+				/[^\S\n]+(?=[a-zA-Z])/g,
+				' '
+			).toUpperCase();
+
+			return word_list;
+		}
+	};
+
+	var get_words = function( data, data_type ) {
+		if ( 'undefined' === typeof( data_type ) ) {
+			data_type = 'file';
+		}
+		
+		var split_data;
+		var word_grid_string = '';
+		if ( 'form' == data_type ) {
+			word_grid_string = validate_input( data[0], 'grid' );
+		} else if ( 'file' == data_type ) {
+			split_data = data.split( /(\n){2}/g );
+			word_grid_string = validate_input( split_data[0], 'grid' );
+		}
+		var word_grid_rows = word_grid_string.split( '\n' );
 		
 		// reset WORD_GRID
 		WORD_GRID = {};
+		WORD_GRID_ROWS = [];
 		for ( var i = 0; i < word_grid_rows.length; i++ ) {
-			var word_grid_chars = word_grid_rows[ i ].toUpperCase().split( ' ' );
+			var word_grid_chars = word_grid_rows[ i ].split( ' ' );
 			for ( var x = 0; x < word_grid_chars.length; x++ ) {
 				WORD_GRID[ i ] = word_grid_chars;
-				WORD_GRID_ROWS[ i ] = word_grid_chars.join( '' ).trim().toUpperCase();
+				WORD_GRID_ROWS[ i ] = word_grid_chars.join( ' ' ).replace( /[^\S\n]+/g, '' );
 			}
 		}
-		var words_to_match_string = split_data[4];
+
+		// reset WORDS_TO_MATCH & WORDS_TO_MATCH_TRIMMED
+		WORDS_TO_MATCH = [];
+		WORDS_TO_MATCH_TRIMMED = [];
+		var words_to_match_string = '';
+		if ( 'form' == data_type ) {
+			words_to_match_string = validate_input( data[1], 'list' );
+		} else if ( 'file' == data_type ) {
+			words_to_match_string = validate_input( split_data[4], 'list' );
+		}
 		var words_to_match_array = words_to_match_string.split( "\n" );
 		jQuery.each( words_to_match_array, function( i, word ) {
-			WORDS_TO_MATCH.push( word.trim().toUpperCase() );
-			WORDS_TO_MATCH_TRIMMED.push( word.trim().replace( /[^a-zA-Z]+/, '' ).toUpperCase() );
+			WORDS_TO_MATCH.push( word );
+			WORDS_TO_MATCH_TRIMMED.push( word.replace( /[^\S\n]+/g, '' ) );
 		});
 
 		var sorted_words = WORDS_TO_MATCH;
@@ -63,9 +189,9 @@
 		});
 		_LENGTH_OF_LONGEST_WORD = sorted_words_trimmed[0].length;
 		_LENGTH_OF_SHORTEST_WORD = sorted_words_trimmed[ sorted_words_trimmed.length - 1 ].length;
-		_GRID_ROW_LENGTH = Object.keys( WORD_GRID ).length;
-		_GRID_COL_LENGTH = WORD_GRID[0].length;
-		_MAX_DIAGONAL_LENGTH = Math.min( _GRID_ROW_LENGTH, _GRID_COL_LENGTH );
+		_GRID_ROW_COUNT = Object.keys( WORD_GRID ).length;
+		_GRID_ROW_LENGTH = WORD_GRID[0].length;
+		_MAX_DIAGONAL_LENGTH = Math.min( _GRID_ROW_COUNT, _GRID_ROW_LENGTH );
 	};
 
 	var search_for_words = function() {
@@ -85,23 +211,23 @@
 	};
 
 	var found_word = function( row, column, word, match_type, color ) {
-		if ( "undefined" == typeof( color ) ) {
+		if ( 'undefined' == typeof( color ) ) {
 			color = 'red';
 		}
 
-		// some stuff to point out matched words.
+		// some styling to point out matched words
 		for ( var i = 0; i < word.length; i++ ) {
 			switch ( match_type ) {
-				case "horizontal":
+				case 'row':
 					jQuery( '#word_table_container td' ).eq( ( column + i ) + _GRID_ROW_LENGTH * row ).css( 'background-color', color );
 					break;
-				case "vertical":
+				case 'column':
 					jQuery( '#word_table_container td' ).eq( column + _GRID_ROW_LENGTH * ( row + i ) ).css( 'background-color', color );
 					break;
-				case "diagonal-right":
+				case 'diagonal-right':
 					jQuery( '#word_table_container td' ).eq( ( column + i ) + _GRID_ROW_LENGTH * ( row + i ) ).css( { 'background-color': color } );
 					break;
-				case "diagonal-left":
+				case 'diagonal-left':
 					jQuery( '#word_table_container td' ).eq( column + ( _GRID_ROW_LENGTH * ( row + i ) - i ) ).css( { 'background-color': color } );
 					break;
 				default:
@@ -112,27 +238,27 @@
 
 	var search_row = function() {
 		for ( var i = 0; i < WORD_GRID_ROWS.length; i++ ) {
-			
-			// search each row
+
 			for ( var x = 0; x < WORDS_TO_MATCH_TRIMMED.length; x++ ) {
 				
-				// search for words
+				// search for forwards words in the row
 				var index_of_word = WORD_GRID_ROWS[ i ].indexOf( WORDS_TO_MATCH_TRIMMED[ x ] );
 				if ( -1 !== index_of_word ) {
 					console.log( 'Horizontal match for "' + WORDS_TO_MATCH[ x ] + '" on row ' + ( i + 1 ) + ' starting at letter #' + ( index_of_word + 1 ) );
-					found_word( i, index_of_word, WORDS_TO_MATCH_TRIMMED[ x ], 'horizontal', 'red' );
+					found_word( i, index_of_word, WORDS_TO_MATCH_TRIMMED[ x ], 'row' );
 					remove_word_from_list( x );
-					break;
 				}
+			}
 
-				// search for backwards words
-				var word_reversed = WORDS_TO_MATCH_TRIMMED[ x ].split( '' ).reverse().join( '' );
+			for ( var y = 0; y < WORDS_TO_MATCH_TRIMMED.length; y++ ) {
+
+				// search for backwards words in the row, by flipping the search word
+				var word_reversed = WORDS_TO_MATCH_TRIMMED[ y ].split( '' ).reverse().join( '' );
 				var index_of_word_reversed = WORD_GRID_ROWS[ i ].indexOf( word_reversed );
 				if ( -1 !== index_of_word_reversed ) {
-					console.log( 'Horizontal match (reversed) for "' + WORDS_TO_MATCH[ x ] + '" on row ' + ( i + 1 ) + ' starting at letter #' + ( index_of_word_reversed + 1 ) );
-					found_word( i, index_of_word_reversed, WORDS_TO_MATCH_TRIMMED[ x ], 'horizontal', 'red' );
-					remove_word_from_list( x );
-					break;
+					console.log( 'Horizontal match (reversed) for "' + WORDS_TO_MATCH[ y ] + '" on row ' + ( i + 1 ) + ' starting at letter #' + ( index_of_word_reversed + 1 ) );
+					found_word( i, index_of_word_reversed, WORDS_TO_MATCH_TRIMMED[ y ], 'row' );
+					remove_word_from_list( y );
 				}
 			}
 		}
@@ -154,7 +280,7 @@
 				var index_of_word = column_string.indexOf( WORDS_TO_MATCH_TRIMMED[ y ] );
 				if ( -1 !== index_of_word ) {
 					console.log( 'Vertical match for "' + WORDS_TO_MATCH[ y ] + '" on row ' + ( index_of_word + 1 ) + ' starting at letter #' + ( i + 1 ) );
-					found_word( index_of_word, i, WORDS_TO_MATCH_TRIMMED[ y ], 'vertical', 'lightgreen' );
+					found_word( index_of_word, i, WORDS_TO_MATCH_TRIMMED[ y ], 'column', 'lightgreen' );
 					remove_word_from_list( y );
 				}
 			}
@@ -165,7 +291,7 @@
 				var index_of_word_reversed = column_string.indexOf( word_reversed );
 				if ( -1 !== index_of_word_reversed ) {
 					console.log( 'Vertical match (reversed) for "' + WORDS_TO_MATCH[ z ] + '" on row ' + ( index_of_word_reversed + 1 ) + ' starting at letter #' + ( i + 1 ) );
-					found_word( index_of_word_reversed, i, WORDS_TO_MATCH_TRIMMED[ z ], 'vertical', 'lightgreen' );
+					found_word( index_of_word_reversed, i, WORDS_TO_MATCH_TRIMMED[ z ], 'column', 'lightgreen' );
 					remove_word_from_list( z );
 				}
 			}
@@ -173,6 +299,11 @@
 	};
 
 	var search_diagonal = function() {
+
+		if ( _MAX_DIAGONAL_LENGTH < _LENGTH_OF_SHORTEST_WORD ) {
+			console.log( "Not enough space to search diagonally." );
+			return;
+		}
 
 		// iterate over each row - traverses up and down
 		for ( var i = 0; i < Object.keys( WORD_GRID ).length; i++ ) {
@@ -187,10 +318,10 @@
 				var search_length = 0;
 				
 				// get the length of the diagonal from the character down to the right
-				if ( _GRID_ROW_LENGTH - x >= _LENGTH_OF_LONGEST_WORD && _GRID_COL_LENGTH - i >= _LENGTH_OF_LONGEST_WORD ) {
+				if ( _GRID_ROW_LENGTH - x >= _LENGTH_OF_LONGEST_WORD && _GRID_ROW_COUNT - i >= _LENGTH_OF_LONGEST_WORD ) {
 					search_length = _LENGTH_OF_LONGEST_WORD;
-				} else if ( _GRID_ROW_LENGTH - x >= _LENGTH_OF_SHORTEST_WORD && _GRID_COL_LENGTH - i >= _LENGTH_OF_SHORTEST_WORD ) {
-					search_length = Math.min(_GRID_ROW_LENGTH - x, _GRID_COL_LENGTH - i );
+				} else if ( _GRID_ROW_LENGTH - x >= _LENGTH_OF_SHORTEST_WORD && _GRID_ROW_COUNT - i >= _LENGTH_OF_SHORTEST_WORD ) {
+					search_length = Math.min( _GRID_ROW_LENGTH - x, _GRID_ROW_COUNT - i );
 				}
 
 				if ( search_length > 0 ) {
@@ -225,10 +356,10 @@
 				search_length = 0;
 
 				// get the length of the diagonal from the character down to the left
-				if ( x >= _LENGTH_OF_LONGEST_WORD && _GRID_COL_LENGTH - i >= _LENGTH_OF_LONGEST_WORD ) {
+				if ( x >= _LENGTH_OF_LONGEST_WORD && _GRID_ROW_COUNT - i >= _LENGTH_OF_LONGEST_WORD ) {
 					search_length = _LENGTH_OF_LONGEST_WORD;
-				} else if ( x >= _LENGTH_OF_SHORTEST_WORD && _GRID_COL_LENGTH - i >= _LENGTH_OF_SHORTEST_WORD ) {
-					search_length = Math.min( x, _GRID_COL_LENGTH - i );
+				} else if ( x >= _LENGTH_OF_SHORTEST_WORD && _GRID_ROW_COUNT - i >= _LENGTH_OF_SHORTEST_WORD ) {
+					search_length = Math.min( x, _GRID_ROW_COUNT - i );
 				}
 				
 				if ( search_length > 0 ) {

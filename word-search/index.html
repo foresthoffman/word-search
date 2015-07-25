@@ -4,6 +4,7 @@
 		<title>JavaScript Word Search Solver</title>
 		<script src="jquery-1.11.3.min.js"></script>
 		<script src="word_search.js"></script>
+		<link rel="stylesheet" type="text/css" href="style.css">
 	</head>
 	<body>
 		<h1>Word Search Solver</h1>
@@ -13,5 +14,26 @@
 				<td><div id='word_list_container'></div></td>
 			</tr>
 		</table>
+		<form id='word_search_form' name='word_search_form'>
+			<table>
+				<tr>
+					<td>
+						<label for='word_grid'>Word Grid</label>
+					</td>
+					<td id='word_search_grid_container'>
+						<textarea id='word_search_form_textarea_grid' class='word_search_form_textarea' name='word_grid' placeholder='Enter your grid...'></textarea>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<label for='word_list'>Word List</label>
+					</td>
+					<td id='word_search_list_container'>
+						<textarea id='word_search_form_textarea_list' class='word_search_form_textarea' name='word_list' placeholder='Enter your list of words to search for...'></textarea>	
+					</td>
+				</tr>
+			</table>
+			<input type='submit' value='Search!'/>
+		</form>
 	</body>
 </html>

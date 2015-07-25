@@ -1,0 +1,15 @@
+html {
+	font-size: 1em;
+	font-family: Verdana, Helvetica, Sans-serif;
+}
+
+#word_search_form td {
+	vertical-align: top;
+}
+
+.word_search_form_textarea {
+	width: 200px;
+	height: 200px;
+	font-size: 1.1em;
+}
+

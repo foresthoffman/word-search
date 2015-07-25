@@ -36,15 +36,18 @@
 					],
 					'form' 
 				);
+
+				// bring the user back up to the top of the grid (slightly under the top of the screen)
+				window.location = '#top';
 			} else if ( '' == document.forms['word_search_form']['word_grid'].value &&
 						'' == document.forms['word_search_form']['word_list'].value
 			) {
 				display_error( 'empty', 'Enter a word grid and a list of words to search for.' );
 			} else if ( '' == document.forms['word_search_form']['word_grid'].value ) {
-				display_error( 'empty', 'Enter a word grid.' );
+				display_error( 'empty', 'Enter a word grid.', 'grid' );
 			} else if ( '' == document.forms['word_search_form']['word_list'].value ) {
-				display_error( 'empty', 'Enter a list of words to search for.' );
-			} 
+				display_error( 'empty', 'Enter a list of words to search for.', 'list' );
+			}
 		});
 	});
 
@@ -55,9 +58,9 @@
 	};
 
 	var display_error = function( error, msg, label_type ) {
-		if ( 'empty' == error ) {
+		if ( 'empty' == error && 'undefined' == typeof( label_type ) ) {
 			jQuery( '#word_search_form label' ).css( 'color', 'red' );
-		} else if ( 'non-alpha' == error || 'row-length' == error ) {
+		} else if ( 'non-alpha' == error || 'row-length' == error || 'undefined' != typeof( label_type ) ) {
 			jQuery( '#word_search_form label[for="word_' + label_type + '"]' ).css( 'color', 'red' );
 		} else {
 			return;
@@ -108,7 +111,13 @@
 			}
 
 			if ( 0 != inconsistent_rows.length ) {
-				display_error( 'row-length', "The word grid's rows must be consistent. Check rows: " + inconsistent_rows.join( ', ' ), type );
+				display_error(
+					'row-length',
+					"The word grid's rows must all be the same length. Check row" +
+						( 1 == inconsistent_rows.length ? '' : 's' ) +
+						': ' + inconsistent_rows.join( ', ' ),
+					type
+				);
 				return;
 			} else {
 				return trimmed_input;	

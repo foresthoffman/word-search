@@ -57,7 +57,7 @@
 	 */
 	jQuery( document ).ready( function() {
 		jQuery.get( 
-			'word-search.txt', 
+			'word-search.txt',
 			function( data ) {
 				reset_display( data, 'file' );
 			}

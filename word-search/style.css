@@ -1,6 +1,24 @@
 html {
 	font-size: 1em;
 	font-family: Verdana, Helvetica, Sans-serif;
+	color: #333;
+}
+
+#word_table_container table {
+	table-layout: fixed;
+	width: 20px;
+	height: 20px;
+	padding: 0 20px 20px 0;
+}
+
+#word_table_container td,
+#word_table_container th {
+	width: 20px;
+	height: 20px;
+}
+
+#word_table_container th {
+	font-size: 0.5em;
 }
 
 #word_search_form td {
@@ -11,5 +29,5 @@ html {
 	width: 200px;
 	height: 200px;
 	font-size: 1.1em;
+	font-family: Verdana, Helvetica, Sans-serif;
 }
-

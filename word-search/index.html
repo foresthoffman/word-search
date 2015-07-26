@@ -7,7 +7,8 @@
 		<link rel="stylesheet" type="text/css" href="style.css">
 	</head>
 	<body>
-		<h1>Word Search Solver</h1>
+		<h1>JavaScript Word Search Solver</h1>
+		<p>by <a href='http://forest.stfhs.net/forest'>Forest Hoffman</a></p>
 		<table>
 			<tr>
 				<td><div id='word_table_container'></div></td>
@@ -21,7 +22,7 @@
 						<label for='word_grid'>Word Grid</label>
 					</td>
 					<td id='word_search_grid_container'>
-						<textarea id='word_search_form_textarea_grid' class='word_search_form_textarea' name='word_grid' placeholder='Enter your grid...'></textarea>
+						<textarea id='word_search_form_textarea_grid' class='word_search_form_textarea' name='word_grid' placeholder='Enter a word grid...'></textarea>
 					</td>
 				</tr>
 				<tr>
@@ -29,11 +30,12 @@
 						<label for='word_list'>Word List</label>
 					</td>
 					<td id='word_search_list_container'>
-						<textarea id='word_search_form_textarea_list' class='word_search_form_textarea' name='word_list' placeholder='Enter your list of words to search for...'></textarea>	
+						<textarea id='word_search_form_textarea_list' class='word_search_form_textarea' name='word_list' placeholder='Enter a list of words...'></textarea>
 					</td>
 				</tr>
 			</table>
 			<input type='submit' value='Search!'/>
 		</form>
+		<strong>Psst! Check the JavaScript console in your browser to see more information on each of the word matches.</strong>
 	</body>
 </html>

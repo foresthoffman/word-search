@@ -1,4 +1,4 @@
-/*
+/**
  * JavaScript Word Search Solver
  * 
  * by: Forest Hoffman (http://forest.stfhs.net/forest)
@@ -47,12 +47,13 @@
 	var _MAX_DIAGONAL_LENGTH = 0;
 	var _GRID_ROW_COUNT = 0;
 	var _GRID_ROW_LENGTH = 0;
+	var _ERROR_LVL = 0;
 
-	/*
+	/**
 	 * Init function
 	 * 
 	 * When the document is fully loaded, the default file is pulled from the server.
-	 * The custom form's submit button is then assigned a click even listener.
+	 * The custom form's submit button is then assigned a click event listener.
 	 *
 	 */
 	jQuery( document ).ready( function() {
@@ -63,7 +64,7 @@
 			}
 		);
 
-		/*
+		/**
 		 * Form submission click event
 		 *
 		 * The listener prevents normal form submission. It then confirms that the form
@@ -73,32 +74,59 @@
 		 */
 		jQuery( 'input[type="submit"]' ).click( function( e ) {
 			e.preventDefault();
-			if ( '' != document.forms['word_search_form']['word_grid'].value &&
-					'' != document.forms['word_search_form']['word_list'].value ) {
-				var reset_display_status = reset_display(
-					[
-						document.forms['word_search_form']['word_grid'].value,
-						document.forms['word_search_form']['word_list'].value
-					],
-					'form'
-				);
-				if ( reset_display_status ) {
-					// bring the user back up to the top of the grid (slightly under the top of the screen)
-					window.location = '#top';
-					// clear_alerts();
+
+			// remove the current errors on screen, and reset the _ERROR_LVL global to 0
+			clear_alerts();
+
+			var word_grid_val = document.forms['word_search_form']['word_grid'].value;
+			var word_list_val = document.forms['word_search_form']['word_list'].value;
+
+			// if all the fields are empty, throw the empty field error
+			if ( '' === word_grid_val && '' === word_list_val ) {
+				_ERROR_LVL = 2;
+				display_form_error( _ERROR_LVL );
+			} else {
+				if ( '' === word_grid_val ) {
+					_ERROR_LVL = 1;
+					display_form_error( _ERROR_LVL, 'grid', 'empty' );
+				} else if ( word_grid_val.match( /[^a-zA-Z\s]/ ) ) {
+					_ERROR_LVL = 1;
+					display_form_error( _ERROR_LVL, 'grid', 'non-alpha' );
 				}
-			} else if ( '' == document.forms['word_search_form']['word_grid'].value &&
-					'' == document.forms['word_search_form']['word_list'].value ) {
-				display_form_error( 'empty', 'Enter a word grid and a list of words to search for.', 'all' );
-			} else if ( '' == document.forms['word_search_form']['word_grid'].value ) {
-				display_form_error( 'empty', 'Enter a word grid.', 'grid' );
-			} else if ( '' == document.forms['word_search_form']['word_list'].value ) {
-				display_form_error( 'empty', 'Enter a list of words to search for.', 'list' );
+
+				if ( '' === word_list_val ) {
+					_ERROR_LVL = 1;
+					display_form_error( _ERROR_LVL, 'list', 'empty' );
+				} else if ( word_list_val.match( /[^a-zA-Z\s]/ ) ) {
+					_ERROR_LVL = 1;
+					display_form_error( _ERROR_LVL, 'list', 'non-alpha' );
+				}
+
+				// if there are no errors, continue with the processing of the data
+				if ( 0 === _ERROR_LVL ) {
+					
+					// run data parsing and searching functions
+					var reset_display_status = reset_display(
+						[
+							word_grid_val,
+							word_list_val
+						],
+						'form'
+					);
+					if ( reset_display_status ) {
+
+						// bring the user back up to the top of the grid 
+						// (slightly under the top of the screen)
+						jump_to_id( 'top' );
+					} else {
+						display_form_error( _ERROR_LVL );
+					}
+				}
 			}
 		});
 	});
 
-	/*
+	/**
 	 * Function: reset_display
 	 * 
 	 * Description: Intakes data from a file or the custom form then it passes 
@@ -122,14 +150,13 @@
 		if ( get_words( data, data_type ) ) {
 			create_display();
 			search_for_words();
-			// clear_alerts();
 			return true;
 		} else {
 			return false;
 		}
 	};
 
-	/*
+	/**
 	 * Function: get_words
 	 * 
 	 * Description: Receives data from the reset_display function and
@@ -199,7 +226,7 @@
 			var sorted_words = WORDS_TO_MATCH;
 			sorted_words.sort( function( a, b ) {
 				
-				/*	
+				/*
 				 * returns > 0 -> b's index gets bumped below a's
 				 * returns < 0 -> a's index gets bumbed below b's
 				 * returns 0   -> indices are the same
@@ -215,24 +242,24 @@
 			_GRID_ROW_COUNT = Object.keys( WORD_GRID ).length;
 			_GRID_ROW_LENGTH = WORD_GRID[0].length;
 			_MAX_DIAGONAL_LENGTH = Math.min( _GRID_ROW_COUNT, _GRID_ROW_LENGTH );
-
-			// return true;
 		}
 
 		if ( 'undefined' != typeof( word_grid_string ) &&
 				'undefined' != typeof( words_to_match_string ) ) {
 			return true;
 		} else {
+
+			// there was an error with the word grid data, so set the error level accordingly
+			_ERROR_LVL = 3;
 			return false;
 		}
 	};
 
-	/*
+	/**
 	 * Function: validate_input
 	 * 
 	 * Description: Receives data from the get_words function and parses the data according to 
-	 *		the value in the type parameter. It then ensures that the data is valid. That means 
-	 *		that the data doesn't contain any characters other than letters and whitespace. 
+	 *		the value in the type parameter. It then ensures that the data is valid. 
 	 *		The data is then parsed based on its type and the resulting string is returned.
 	 *
 	 * Input(s):
@@ -240,20 +267,12 @@
 	 * - type (string), contains "grid" or "list", which determines how the data is validated.
 	 *
 	 * Returns: 
-	 * - NOTHING, on failure, when the word grid or word lists contains non-letter characters, or 
-	 *		when the word grid's rows are inconsistent lengths.
+	 * - NOTHING, on failure, when the word grid's rows are inconsistent lengths.
 	 * - STRING, on success, which contains the fully parsed and validated string to be processed by
 	 *		the get_words function.
 	 *
 	 */
 	var validate_input = function( input, type ) {
-		if ( input.match( /[^a-zA-Z\s]/ ) ) {
-			display_form_error( 'non-alpha', 'Only letters and spaces are allowed in the ' + type + ' field.', type );
-			return;
-		}
-
-		// clear the alert and label styles for the specified form input type
-		clear_alerts( type );
 
 		if ( 'grid' == type ) {
 
@@ -291,13 +310,6 @@
 			}
 
 			if ( 0 != inconsistent_rows.length ) {
-				display_form_error(
-					'row-length',
-					"The word grid's rows must be the same length as the first. Check row" +
-						( 1 == inconsistent_rows.length ? '' : 's' ) +
-						': ' + inconsistent_rows.join( ', ' ),
-					type
-				);
 				return;
 			} else {
 				return trimmed_input;
@@ -323,7 +335,7 @@
 		}
 	};
 
-	/*
+	/**
 	 * Function: found_word
 	 * 
 	 * Description: Receives data on the zero-indexed row and column location of the word that has been
@@ -377,7 +389,7 @@
 		}
 	};
 
-	/*
+	/**
 	 * Function: remove_word_from_list
 	 * 
 	 * Description: Removes the word at the received index in the word list global variables and styles the 
@@ -399,7 +411,7 @@
 		WORDS_TO_MATCH_TRIMMED.splice( index, 1 );
 	};
 
-	/*
+	/**
 	 * Function: search_for_words
 	 * 
 	 * Description: Handles calling the various search functions and adds some formatting to the JavaScript console.
@@ -417,7 +429,7 @@
 		console.log( '################## All done!' );
 	};
 
-	/*
+	/**
 	 * Function: search_row
 	 * 
 	 * Description: Searches every row in the word grid (using the WORD_GRID_ROWS global, which stores rows as
@@ -461,7 +473,7 @@
 		}
 	};
 
-	/*
+	/**
 	 * Function: search_column
 	 * 
 	 * Description: Searches every column in the word grid by using the first row of the WORD_GRID_ROWS array. 
@@ -511,7 +523,7 @@
 		}
 	};
 
-	/*
+	/**
 	 * Function: search_diagonal
 	 * 
 	 * Description: Loops through every row and column to check for diagonal matches to the left and right of every
@@ -629,7 +641,7 @@
 		}
 	};
 
-	/*
+	/**
 	 * Function: create_display
 	 * 
 	 * Description: Dynamically generates the word grid and the word list.
@@ -684,105 +696,72 @@
 		jQuery( '#word_list_container' ).html( list_html );
 	};
 
-	/*
+	/**
 	 * Function: display_form_error
 	 * 
-	 * Description: Highlights the conflicting form input and alerts the user with the received error message.
+	 * Description: Highlights the conflicting form input and alerts the user with a pre-defined error message.
 	 *
 	 * Input(s):
-	 * - error (string), the type of error: "empty" (one or more inputs were left empty), "non-alpha" (an input
-	 * 		contains characters other than letters and whitespace), or "row-length" (the word grid's rows are 
-	 *		inconsistent lengths).
-	 * - msg (string), the error message to be alerted.
-	 * - label_type (string), indicates which label to highlight if only one is conflicting: "grid", "list", or "all".
+	 * - error (string), the error code: 1 (individual input error), 2 (all fields empty), 3 (parsing error).
+	 * - label_type (string; optional), indicates which label to highlight if only one is conflicting: "grid" or "list".
+	 * - error_type (string; optional), the type of error: "empty" (one or more inputs were left empty) or "non-alpha" (an input
+	 * 		contains characters other than letters and whitespace). NOTE: These are for individual form inputs.
 	 *
 	 * Returns: N/A
 	 *
 	 */
-	var display_form_error = function( error, msg, label_type ) {
-		if ( 'undefined' == typeof( label_type ) ) {
+	var display_form_error = function( error, label_type, error_type ) {
+		if ( 'undefined' == typeof( error ) ) {
 			return;
 		}
 
-		if ( 'empty' == error && 'all' == label_type ) {
-			console.log( "All fields are empty!" );
-		} else if ( ( 'empty' == error ||
-				'non-alpha' == error ||
-				'row-length' == error ) &&
-				'all' != label_type ) {
-			console.log( 'type of error: ' + error + ' on label type of: ' + label_type );
+		var msg = '';
+
+		switch( error ) {
+			case 1:
+				if ( 'empty' === error_type ) {
+					msg = 'The ' + label_type + ' field must be filled.';
+				} else if ( 'non-alpha' === error_type ) {
+					msg = 'The ' + label_type + ' field may only contain alphabetical characters and spaces.';
+				}
+				jQuery( '#word_search_form label[for="word_' + label_type + '"]' ).css( 'color', '#DB2406' );
+				break;
+			case 2:
+				msg = 'Both the grid and list fields must be filled.';
+				jQuery( '#word_search_form label' ).css( 'color', '#DB2406' );
+				break;
+			case 3:
+				msg = 'There is an issue with the grid field! Make sure that the grid rows are all the same length.';
+				jQuery( '#word_search_form label[for="word_grid"]' ).css( 'color', '#DB2406' );
+				break;
 		}
 
-		// if ( 'empty' == error && 'all' == label_type ) {
-
-		// 	// clear all alerts and reset label color
-		// 	clear_alerts();
-
-		// 	// change the color of all the labels
-		// 	jQuery( '#word_search_form label' ).css( 'color', '#DB2406' );
-		// } else if ( ( 'empty' == error ||
-		// 		'non-alpha' == error ||
-		// 		'row-length' == error ) &&
-		// 		'all' != label_type ) {
-
-		// 	// the alert with the "alert-all" is no longer needed, so hide it
-		// 	clear_alerts( 'all' );
-		// 	jQuery( '#word_search_form label[for="word_' + label_type + '"]' ).css( 'color', '#DB2406' );
-		// }
-
-		// // show the alert with the provide type and populate it with the error message
-		// jQuery( '#word_search_form #alert-' + label_type ).show();
-		// jQuery( '#word_search_form #alert-' + label_type ).text( msg );
-
-		// // then direct the user to the alert by changing the window's url
-		// jump_to_id( '#alert-' + label_type );
+		jQuery( '#word_search_form #alert-list' ).append( '<li>' + msg + '</li>' );
+		jQuery( '#word_search_form #alert-area' ).show();
 	};
 
-	/*
+	/**
 	 * Function: clear_alerts
 	 * 
-	 * Description: Clears the error notifications on screen and changes the color of the specified form labels.
+	 * Description: Clears the error notifications on screen and changes the color of all form labels.
 	 *
-	 * Input(s):
-	 * - type (string/null), the type of label/alert to clear. Possible values include "grid", "list", "all"
-	 * 		(appears when all fields are empty), or null (to indicate that ALL errors should be cleared).
+	 * Input(s): N/A
 	 *
 	 * Returns: N/A
 	 *
 	 */
-	var clear_alerts = function( type ) {
-		if ( 'undefined' == typeof( type ) ) {
-			return;
-		}
+	var clear_alerts = function() {
 		
-		if ( 'all' == typeof( type ) ) {
-			jQuery( '#word_search_form label' ).css( 'color', '#333' );
-			jQuery( '#word_search_form .alert' ).hide();
-		} else {
-			jQuery( '#word_search_form label[for="word_' + type + '"]' ).css( 'color', '#333' );
-			jQuery( '#word_search_form #alert-' + type ).hide();
-		}
+		// reset the error count
+		_ERROR_LVL = 0;
 
-
-
-		// if ( 'undefined' == typeof( type ) ) {
-
-		// 	// reset the colors of all form labels
-		// 	jQuery( '#word_search_form label' ).css( 'color', '#333' );
-
-		// 	// hide all form alerts
-		// 	jQuery( '#word_search_form .alert' ).hide();
-		// } else {
-		// 	if ( 'all' != type ) {
-		// 		jQuery( '#word_search_form label[for="word_' + type + '"]' ).css( 'color', '#333' );
-		// 	} else {
-		// 		jQuery( '#word_search_form label' ).css( 'color', '#333' );
-		// 	}
-		// 	jQuery( '#word_search_form #alert-' + type ).hide();
-		// }
+		// hide the errors
+		jQuery( '#word_search_form label' ).css( 'color', '#333' );
+		jQuery( '#word_search_form #alert-area' ).hide();
+		jQuery( '#word_search_form #alert-list' ).html( '' );
 	};
 
-	/*
+	/**
 	 * Function: jump_to_id
 	 * 
 	 * Description: Directs the screen to the specified element id, by changing the URL.
@@ -795,10 +774,11 @@
 	 */
 	var jump_to_id = function( id ) {
 		if ( '' != id ) {
-			var valid_id = id.replace( /^(#)*/, '#' );
-			if ( jQuery( valid_id ).length > 0 ) {
-				window.location.hash = valid_id;
-			}
+			var valid_id = id.replace( /^(#)*/, '' );
+
+			// force the URL hash to be reset
+			window.location.hash = '';
+			window.location.hash = valid_id;
 		}
 	};
 })();

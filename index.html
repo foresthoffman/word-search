@@ -3,39 +3,60 @@
 	<head>
 		<title>JavaScript Word Search Solver</title>
 		<script src="jquery-1.11.3.min.js"></script>
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
 		<script src="word_search.js"></script>
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
 		<link rel="stylesheet" type="text/css" href="style.css">
 	</head>
 	<body>
-		<h1>JavaScript Word Search Solver</h1>
-		<p>by <a href='http://forest.stfhs.net/forest'>Forest Hoffman</a></p>
-		<table>
-			<tr>
-				<td><div id='word_table_container'></div></td>
-				<td><div id='word_list_container'></div></td>
-			</tr>
-		</table>
-		<form id='word_search_form' name='word_search_form'>
-			<table>
-				<tr>
-					<td>
+		<div class='container'>
+			<nav class="navbar navbar-default">
+				<div class="container-fluid">
+					<div class="navbar-header">
+						<button type='button' class='navbar-toggle collapsed' data-toggle='collapse' data-target='#navbar-collapse-1' aria-expanded='false'>
+							<span class='sr-only'>Toggle Navigation</span>
+							<span class='icon-bar'></span>
+							<span class='icon-bar'></span>
+							<span class='icon-bar'></span>
+						</button>
+						<a class="navbar-brand" href="#">Word Search Solver</a>
+					</div>
+					<div id='navbar-collapse-1' class='navbar-collapse collapse'>
+						<ul class='nav navbar-nav'>
+							<li><a href='../../'>Home</a></li>
+							<li><a href='../../?project=javascript-word-search-solver'>About</a></li>
+						</ul>
+					</div>
+				</div>
+			</nav>
+
+			<div id='main_content'>
+				<div id='word_list_container'></div>
+				<div id='word_table_container'></div>
+			</div>
+			
+			<div id='footer'>
+				<form id='word_search_form' name='word_search_form' role='form'>
+					<div class='form-group'>
+						<div id='alert-grid' class='alert alert-danger'></div>
 						<label for='word_grid'>Word Grid</label>
-					</td>
-					<td id='word_search_grid_container'>
-						<textarea id='word_search_form_textarea_grid' class='word_search_form_textarea' name='word_grid' placeholder='Enter a word grid...'></textarea>
-					</td>
-				</tr>
-				<tr>
-					<td>
+						<textarea id='word_search_form_textarea_grid' class='form-control word_search_form_textarea' name='word_grid' placeholder='Enter a word grid...'></textarea>
+					</div>
+					<div class='form-group'>
+						<div id='alert-list' class='alert alert-danger'></div>
 						<label for='word_list'>Word List</label>
-					</td>
-					<td id='word_search_list_container'>
-						<textarea id='word_search_form_textarea_list' class='word_search_form_textarea' name='word_list' placeholder='Enter a list of words...'></textarea>
-					</td>
-				</tr>
-			</table>
-			<input type='submit' value='Search!'/>
-		</form>
-		<strong>Psst! Check the JavaScript console in your browser to see more information on each of the word matches.</strong>
+						<textarea id='word_search_form_textarea_list' class='form-control word_search_form_textarea' name='word_list' placeholder='Enter a list of words...'></textarea>
+					</div>
+					<div class='form-group'>
+						<input type='submit' class='btn btn-primary' value='Search!'/>
+					</div>
+				</form>
+				<div id='note'>
+					<strong>
+						<em>Psst!</em> Check the JavaScript console in your browser to see more information on each of the word matches.
+					</strong>
+				</div>
+			</div>
+		</div>
 	</body>
 </html>

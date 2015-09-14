@@ -34,7 +34,7 @@ body {
 /* end main content positioning */
 
 #word_list_container {
-	padding-right: 20px;
+	margin-left: 20%;
 }
 
 #word_list_container ol {
@@ -50,8 +50,6 @@ body {
 
 #word_table_container table {
 	table-layout: fixed;
-	width: 20px;
-	height: 20px;
 }
 
 #word_table_container td,
@@ -112,5 +110,15 @@ body {
 		width: 75%;
 		margin-left: auto;
 		margin-right: auto;
+	}
+
+	#word_list_container {
+		padding-right: 20px;
+		margin-left: 0px;
+	}
+
+	#word_table_container table {
+		width: 20px;
+		height: 20px;
 	}
 }

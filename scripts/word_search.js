@@ -29,7 +29,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  */
-( function() {
+function WORD_SEARCH ( default_file_path ) {
 
 	// an object full of arrays of characters that represent rows broken apart
 	var WORD_GRID = {};
@@ -57,9 +57,14 @@
 	 *
 	 */
 	jQuery( document ).ready( function() {
+		default_file_path = ( 
+			'undefined' !== typeof( default_file_path ) ?
+			default_file_path :
+			'data/word-search.txt'
+		);
 		jQuery.get( 
-			'word-search.txt',
-			function( data ) {
+			default_file_path,
+			function ( data ) {
 				reset_display( data, 'file' );
 			}
 		);
@@ -78,8 +83,8 @@
 			// remove the current errors on screen, and reset the _ERROR_LVL global to 0
 			clear_alerts();
 
-			var word_grid_val = document.forms['word_search_form']['word_grid'].value;
-			var word_list_val = document.forms['word_search_form']['word_list'].value;
+			var word_grid_val = document.forms.word_search_form.word_grid.value;
+			var word_list_val = document.forms.word_search_form.word_list.value;
 
 			// if all the fields are empty, throw the empty field error
 			if ( '' === word_grid_val && '' === word_list_val ) {
@@ -184,14 +189,14 @@
 		
 		var split_data;
 		var word_grid_string = '';
-		if ( 'form' == data_type ) {
+		if ( 'form' === data_type ) {
 			word_grid_string = validate_input( data[0], 'grid' );
-		} else if ( 'file' == data_type ) {
+		} else if ( 'file' === data_type ) {
 			split_data = data.split( /(\n){2}/g );
 			word_grid_string = validate_input( split_data[0], 'grid' );
 		}
 		
-		if ( 'undefined' != typeof( word_grid_string ) ) {
+		if ( 'undefined' !== typeof( word_grid_string ) ) {
 			var word_grid_rows = word_grid_string.split( '\n' );
 			
 			// reset WORD_GRID
@@ -210,13 +215,13 @@
 		WORDS_TO_MATCH = [];
 		WORDS_TO_MATCH_TRIMMED = [];
 		var words_to_match_string = '';
-		if ( 'form' == data_type ) {
+		if ( 'form' === data_type ) {
 			words_to_match_string = validate_input( data[1], 'list' );
-		} else if ( 'file' == data_type ) {
+		} else if ( 'file' === data_type ) {
 			words_to_match_string = validate_input( split_data[4], 'list' );
 		}
 		
-		if ( 'undefined' != typeof( words_to_match_string ) ) {
+		if ( 'undefined' !== typeof( words_to_match_string ) ) {
 			var words_to_match_array = words_to_match_string.split( "\n" );
 			jQuery.each( words_to_match_array, function( i, word ) {
 				WORDS_TO_MATCH.push( word );
@@ -244,8 +249,8 @@
 			_MAX_DIAGONAL_LENGTH = Math.min( _GRID_ROW_COUNT, _GRID_ROW_LENGTH );
 		}
 
-		if ( 'undefined' != typeof( word_grid_string ) &&
-				'undefined' != typeof( words_to_match_string ) ) {
+		if ( 'undefined' !== typeof( word_grid_string ) &&
+				'undefined' !== typeof( words_to_match_string ) ) {
 			return true;
 		} else {
 
@@ -274,7 +279,7 @@
 	 */
 	var validate_input = function( input, type ) {
 
-		if ( 'grid' == type ) {
+		if ( 'grid' === type ) {
 
 			// holds the indices of rows that are not the same length
 			var inconsistent_rows = [];
@@ -304,17 +309,17 @@
 			// check the length of each row in the word grid, they should all be the same
 			var trimmed_input_array = trimmed_input.split( '\n' );
 			for ( var i = 0; i < trimmed_input_array.length; i++ ) {
-				if ( trimmed_input_array[ i ].length != trimmed_input_array[0].length ) {
+				if ( trimmed_input_array[ i ].length !== trimmed_input_array[0].length ) {
 					inconsistent_rows.push( i + 1 );
 				}
 			}
 
-			if ( 0 != inconsistent_rows.length ) {
+			if ( 0 !== inconsistent_rows.length ) {
 				return;
 			} else {
 				return trimmed_input;
 			}
-		} else if ( 'list' == type ) {
+		} else if ( 'list' === type ) {
 
 			// remove spaces from the element and remove any extra newline characters
 			var word_list = input.trim().replace(
@@ -711,7 +716,7 @@
 	 *
 	 */
 	var display_form_error = function( error, label_type, error_type ) {
-		if ( 'undefined' == typeof( error ) ) {
+		if ( 'undefined' === typeof( error ) ) {
 			return;
 		}
 
@@ -773,7 +778,7 @@
 	 *
 	 */
 	var jump_to_id = function( id ) {
-		if ( '' != id ) {
+		if ( '' !== id ) {
 			var valid_id = id.replace( /^(#)*/, '' );
 
 			// force the URL hash to be reset
@@ -781,4 +786,4 @@
 			window.location.hash = valid_id;
 		}
 	};
-})();
+}

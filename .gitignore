@@ -5,7 +5,4 @@
 .sass-cache
 
 # NPM stuff
-Gruntfile.js
-package.json
 node_modules/
-tests/

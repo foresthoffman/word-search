@@ -15,7 +15,9 @@ module.exports = function( grunt ) {
 				dest: 'public/scripts/main.js',
 				files: [
 					'<%= paths.js.source %>',
-					'test/**/*.js'
+					'Gruntfile.js',
+					'test/**/*.js',
+					'!test/utils/**/*.js'
 				]
 			},
 			sass: {
@@ -25,8 +27,8 @@ module.exports = function( grunt ) {
 				dir: 'public/styles',
 				dest: '<%= paths.css.dir %>/main.css'
 			},
-			mocha: {
-				files: 'test/**/*-spec.js'
+			test: {
+				files: 'test/**/*.test.js'
 			}
 		},
 		sass: {
@@ -61,17 +63,20 @@ module.exports = function( grunt ) {
 				globals: {
 					'jQuery': true,
 					'module': true,
-					'require': true
+					'require': true,
+					'window': true,
+					'global': true
 				}
 			},
-			dist: [
-				'<%= paths.js.files %>',
-				'Gruntfile.js'
-			]
+			dist: '<%= paths.js.files %>'
 		},
 		mochaTest: {
 			test: {
-				src: '<%= paths.mocha.files %>'
+				options: {
+					reporter: 'nyan',
+					require: 'test/utils/jsdom-config.js'
+				},
+				src: '<%= paths.test.files %>'
 			}
 		},
 		watch: {
@@ -90,11 +95,11 @@ module.exports = function( grunt ) {
 				}
 			},
 			mocha: {
-				files: '<%= paths.mocha.files %>',
-				tasks: ['mochaTest'],
-				options: {
-					spawn: false
-				}
+				files: [
+					'<%= paths.test.files %>',
+					'<%= paths.js.source %>'
+				],
+				tasks: ['mochaTest']
 			}
 		},
 		concurrent: {
@@ -104,8 +109,8 @@ module.exports = function( grunt ) {
 			dev: {
 				tasks: [
 					'watch:jshint',
-					'watch:mocha',
-					'watch:sass'
+					'watch:sass',
+					'watch:mocha'
 				]
 			}
 		}
@@ -117,8 +122,8 @@ module.exports = function( grunt ) {
 	grunt.registerTask( 'build', ['jshint', 'sass', 'mochaTest', 'concat'] );
 
 	// automated checks
-	grunt.registerTask( 'dev', ['concurrent:dev'] );
+	grunt.registerTask( 'dev', 'concurrent:dev' );
 
-	// default task
-	grunt.registerTask( 'default', ['jshint', 'sass', 'mochaTest'] );
+	// default task (made it the same as the "build" task)
+	grunt.registerTask( 'default', 'build' );
 };

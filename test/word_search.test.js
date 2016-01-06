@@ -6,13 +6,16 @@ var expect = require( 'chai' ).expect;
 // for mocking functions!
 var sinon = require( 'sinon' );
 
+// for reading files!
+var fs = require( 'fs' );
+
 // for jQuery DOM manipulation!
 var jQuery = require( '../scripts/lib/jquery-1.11.3.min.js' );
 
 // the library to test!
 var word_search = require( '../scripts/word_search.js' );
 
-describe( 'Dependency Tests: ', function() {
+describe( 'Dependency Tests', function() {
 	it( 'chai library exists?', function() {
 		expect( expect ).to.be.ok;
 	});
@@ -35,7 +38,7 @@ describe( 'Dependency Tests: ', function() {
 	});
 });
 
-describe( 'DOM Tests: ', function() {
+describe( 'DOM Tests', function() {
 	it( 'window object is ready to go?', function() {
 		expect( window ).to.be.ok;
 	});
@@ -57,101 +60,172 @@ describe( 'DOM Tests: ', function() {
 	});
 });
 
-describe( 'WordSearch Class Tests: ', function() {
+describe( 'WordSearch Class', function() {
+	describe( '_DEFAULT_FILE_PATH', function() {
+		it( 'should be consistent with path passed to init()', function() {
+			var WordSearchClass = new word_search.WordSearch();
+			WordSearchClass.init( './data/word-search.txt' );
 
-	it( 'WordSearch default file path should be consistent with constructor arguments', function() {
-		var WordSearchClass = new word_search.WordSearch( './data/word-search.txt' );
-
-		expect( WordSearchClass._DEFAULT_FILE_PATH ).to.be.equal( './data/word-search.txt' );
+			expect( WordSearchClass._DEFAULT_FILE_PATH ).to.be.equal( './data/word-search.txt' );
+		});
 	});
 
-	it( "WordSearch.loaded() should get file data and call WordSearch.reset_display()", function() {
-		var WordSearchClass = new word_search.WordSearch( './data/word-search.txt' );
-		var file_data = 
-			"O B M K A T A M A R I O C C S F T P H S\n" +
-			"S M G S W G B O J K O N U U R I I A J D\n" +
-			"T K H V O O N V X H O D L Z B E L S D O\n" +
-			"E D I E P O N A Z R E U D L N X E D B C\n" +
-			"V V Y E S M T I M N C I V E L A B P C B\n" +
-			"E O C X S B K A S O W B S O R E T S E W\n" +
-			"S U M I N A N X C T F R I E K P H B K R\n" +
-			"M S B S T D X S T G K B A R N V U A M I\n" +
-			"O V G U Y I G K H N B O O P D B V L D R\n" +
-			"M U P N E K T U P I H K P Y T M E S G M\n" +
-			"H M Z O G J T A F F N R Q L R U A R U A\n" +
-			"G L A R O F B R N F C R Z K S K R N G R\n" +
-			"L G W T J W I U C U A L A Y R N M E A K\n" +
-			"U Q J A B T A M B L X V A T L Y X V S H\n" +
-			"R O L P H R R L Y B K J E P T F X L J A\n" +
-			"E M M Y J O O Z K N F R V N T A E O E M\n" +
-			"A P Q I D E Z L N E V C A H G R R R L S\n" +
-			"V M Z R T G Z M I B R N U T A E A D I R\n" +
-			"E E O N Z I C G L A K S L E S K R P I F\n" +
-			"R M F A T P Z C B I Z D T A J O F S W S\n" +
-			"\n" +
-			"\n" +
-			"Words to find:\n" +
-			"\n" +
-			"BLINKY\n" +
-			"SHINRA\n" +
-			"RAPTURE \n" +
-			"ANIMUS\n" +
-			"FIREFLY \n" +
-			"WALKERS\n" +
-			"TARDIS \n" +
-			"EPONA \n" +
-			"CREEPER\n" +
-			"AVENGER\n" +
-			"PATRONUS \n" +
-			"WESTEROS\n" +
-			"IFRIT\n" +
-			"ARKHAM\n" +
-			"VAULT\n" +
-			"CLAPTRAP \n" +
-			"NORMANDY\n" +
-			"REAVER\n" +
-			"HEISENBERG\n" +
-			"STARK \n" +
-			"MORDOR\n" +
-			"BIRDMAN \n" +
-			"TITAN\n" +
-			"OCULUS\n" +
-			"GOOMBA\n" +
-			"KATAMARI";
+	describe( 'jump_to_id( id )', function() {
+		it( "should properly set the window's hash value to the passed hash", function() {
+			var WordSearchClass = new word_search.WordSearch();
+			var default_href = window.location.href;
 
-		var loaded_spy = sinon.spy( WordSearchClass, 'loaded' );
-		var reset_display_spy = sinon.spy( WordSearchClass, 'reset_display' );
+			WordSearchClass.init();
 
-		WordSearchClass.loaded( WordSearchClass );
+			// the window has to have a base location for the jump_to_id()
+			// function to work properly
+			window.location.href = 'http://localhost:1111';
 
-		expect( loaded_spy.calledWith( WordSearchClass ) ).to.be.true;
-		expect( loaded_spy.callCount ).to.be.equal( 1 );
-		expect( reset_display_spy.callCount ).to.be.equal( 0 );
-		expect(
-			reset_display_spy.calledWith(
-				file_data,
+			expect( window.location.hash ).to.be.equal( '' );
+
+			WordSearchClass.jump_to_id( '#middle' );
+
+			expect( window.location.hash ).to.be.equal( '#middle' );
+
+			// set the base location back to normal, just to be safe
+			window.location.href = default_href;
+		});
+	});
+
+	describe( 'loaded( self )', function() {
+		it( 'should be passed a reference to the WordSearch() class', function() {
+			var WordSearchClass = new word_search.WordSearch();
+			var loaded_spy = sinon.spy( WordSearchClass, "loaded" );
+			WordSearchClass.init();
+
+			expect( loaded_spy.calledOnce ).to.be.true;
+			expect( loaded_spy.calledWith( WordSearchClass ) ).to.be.true;
+
+			loaded_spy.reset();
+		});
+	});
+
+	describe( 'get_file_data( url, self, callback )', function() {
+		it( 'should be passed a url, a reference to the WordSearch() class, ' + 
+				'and a callback', 
+			function() {
+				var WordSearchClass = new word_search.WordSearch();
+				var get_file_data_spy = sinon.spy( WordSearchClass, "get_file_data" );
+				WordSearchClass.init( 'data/word-search.fake.txt' );
+
+				expect( get_file_data_spy.calledOnce ).to.be.true;
+				expect(
+					get_file_data_spy.calledWithExactly(
+						'data/word-search.fake.txt',
+						WordSearchClass,
+						WordSearchClass.reset_display
+					)
+				).to.be.true;
+
+				get_file_data_spy.reset();
+			}
+		);
+	});
+
+	describe( 'reset_display( data, data_type, self )', function() {
+		this.timeout( 4000 );
+
+		var get_file_data_stub;
+		var reset_display_stub;
+		var WordSearchClass = new word_search.WordSearch();
+		var test_data = fs.readFileSync(
+			"test/data/word-search.txt",
+			"utf-8"
+		);
+
+		beforeEach( function() {
+			get_file_data_stub = sinon.stub( WordSearchClass, 'get_file_data' ).yields(
+				test_data,
 				'file',
 				WordSearchClass
-			)
-		).to.be.true;
+			);
+			reset_display_stub = sinon.stub(
+				WordSearchClass,
+				'reset_display',
+				function ( data, data_type, self ) {}
+			);
+		});
+
+		afterEach( function() {
+			get_file_data_stub.restore();
+			reset_display_stub.restore();
+		});
+
+		it( 'should be called only once',
+			function( done ) {
+				
+				WordSearchClass.init();
+
+				expect( reset_display_stub.calledOnce ).to.be.true;
+
+				done();
+			}
+		);
+
+		it( 'should be passed the file data, the data type ("file"), ' +
+				'and a reference to the WordSearch() class',
+			function( done ) {
+				
+				WordSearchClass.init();
+
+				expect(
+					reset_display_stub.calledWithExactly(
+						test_data,
+						'file',
+						WordSearchClass
+					)
+				).to.be.true;
+
+				done();
+			}
+		);
 	});
 
-	// jump_to_id() function
-	it( "WordSearch.jump_to_id() should properly set the window's hash value", function() {
+	describe( 'passing get_words() good data', function() {
+		this.timeout( 4000 );
+
+		var get_file_data_stub;
+		var reset_display_stub;
+		var get_words_spy;
 		var WordSearchClass = new word_search.WordSearch();
-		var default_href = window.location.href;
+		var test_data_normal = fs.readFileSync(
+			"test/data/word-search.txt",
+			"utf-8"
+		);
 
-		// the window has to have a base location for the WordSearch.jump_to_id()
-		// function to work properly
-		window.location.href = 'http://localhost:1111';
+		beforeEach( function() {
+			get_file_data_stub = sinon.stub( WordSearchClass, 'get_file_data' ).yields(
+				test_data_normal,
+				'file',
+				WordSearchClass
+			);
+			reset_display_stub = sinon.stub(
+				WordSearchClass,
+				'reset_display',
+				function ( data, data_type, self ) {
+					WordSearchClass.get_words( data, data_type, self );
+				}
+			);
+			get_words_spy = sinon.spy( WordSearchClass, 'get_words' );
+		});
 
-		expect( window.location.hash ).to.be.equal( '' );
+		afterEach( function() {
+			get_file_data_stub.restore();
+			reset_display_stub.restore();
+			get_words_spy.reset();
+		});
 
-		WordSearchClass.jump_to_id( '#middle' );
+		it( 'should return true', function( done ) {
+			WordSearchClass.init();
 
-		expect( window.location.hash ).to.be.equal('#middle');
+			expect( get_words_spy.returned( true ) ).to.be.true;
 
-		// set the base location back to normal, just to be safe
-		window.location.href = default_href;
+			done();
+		});
 	});
 });

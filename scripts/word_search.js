@@ -37,12 +37,12 @@ if ( "undefined" === typeof( jQuery ) ) {
 
 // this is necessary for testing (compatibility with NodeJS)
 if ( "undefined" !== typeof( module ) ) {
-	module.exports = {
-		WordSearch: WordSearch
-	};
+	module.exports.WordSearch = WordSearch;
 }
 
-function WordSearch ( default_file_path ) {
+function WordSearch () {}
+
+WordSearch.prototype.init = function ( default_file_path ) {
 	
 	// an object full of arrays of characters that represent rows broken apart
 	this.WORD_GRID = {};
@@ -68,15 +68,16 @@ function WordSearch ( default_file_path ) {
 	);
 	var self = this;
 	this.loaded( self );
-}
+};
 
 WordSearch.prototype.loaded = function ( self ) {
-	jQuery.get( 
-		this._DEFAULT_FILE_PATH,
-		function ( data ) {
-			self.reset_display( data, 'file', self );
-		}
+	// self.get_file_data( self._DEFAULT_FILE_PATH, self );
+	self.get_file_data(
+		self._DEFAULT_FILE_PATH,
+		self,
+		self.reset_display
 	);
+
 	/**
 	 * Form submission click event
 	 *
@@ -88,6 +89,17 @@ WordSearch.prototype.loaded = function ( self ) {
 	jQuery( 'input[type="submit"]' ).click( function ( e ) {
 		self.form_clicked( e, self );
 	});
+};
+
+// add description for get_file_data() function
+WordSearch.prototype.get_file_data = function ( url, self, callback ) {
+	jQuery.get(
+		url,
+		function ( data ) {
+			// self.reset_display( data, 'file', self );
+			callback( data, 'file', self );
+		}
+	);
 };
 
 // add description for form_clicked() function

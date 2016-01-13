@@ -73,7 +73,7 @@ module.exports = function( grunt ) {
 		mochaTest: {
 			test: {
 				options: {
-					reporter: 'nyan',
+					reporter: 'spec',
 					require: 'test/utils/jsdom-config.js'
 				},
 				src: '<%= paths.test.files %>'

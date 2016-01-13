@@ -40,8 +40,26 @@ if ( "undefined" !== typeof( module ) ) {
 	module.exports.WordSearch = WordSearch;
 }
 
+/**
+ * Class: WordSearch
+ * 
+ * Description: Contains all the functions to run a word search.
+ *
+ */
 function WordSearch () {}
 
+/**
+ * Function: init
+ * 
+ * Description: Prepares all of the WordSearch class's properties, and passes
+ * 		a reference to WordSearch the class to the loaded function.
+ *
+ * Input(s):
+ * - default_file_path (string), contains a path to a data file.
+ *
+ * Returns: N/A
+ *
+ */
 WordSearch.prototype.init = function ( default_file_path ) {
 	
 	// an object full of arrays of characters that represent rows broken apart
@@ -70,8 +88,19 @@ WordSearch.prototype.init = function ( default_file_path ) {
 	this.loaded( self );
 };
 
+/**
+ * Function: loaded
+ * 
+ * Description: Calls get_file_data and creates a form submission event listener.
+ *
+ * Input(s):
+ * - self (object), contains a reference to the current instance of the
+ *		WordSearch class.
+ *
+ * Returns: N/A
+ *
+ */
 WordSearch.prototype.loaded = function ( self ) {
-	// self.get_file_data( self._DEFAULT_FILE_PATH, self );
 	self.get_file_data(
 		self._DEFAULT_FILE_PATH,
 		self,
@@ -91,24 +120,53 @@ WordSearch.prototype.loaded = function ( self ) {
 	});
 };
 
-// add description for get_file_data() function
+/**
+ * Function: get_file_data
+ * 
+ * Description: Sends a GET request for a data file at a specified path, and sends
+ * 		the data to a specified function.
+ *
+ * Input(s):
+ * - url (string), contains a path to the data file to read.
+ * - self (object), contains a reference to the current instance of the
+ *		WordSearch class.
+ * - callback (function), contains a function to pass the file data to.
+ *
+ * Returns: N/A
+ *
+ */
 WordSearch.prototype.get_file_data = function ( url, self, callback ) {
 	jQuery.get(
 		url,
 		function ( data ) {
-			// self.reset_display( data, 'file', self );
 			callback( data, 'file', self );
 		}
 	);
 };
 
-// add description for form_clicked() function
+/**
+ * Function: form_clicked
+ * 
+ * Description: Handles simple input validation before sending form data
+ * 		off to be parsed (and checked more strictly). Clears up old
+ *		errors before each run, and displays any new errors on screen.
+ *
+ * Input(s):
+ * - e (object), contains the form click event.
+ * - self (object), contains a reference to the current instance of the
+ *		WordSearch class.
+ *
+ * Returns: N/A
+ *
+ */
 WordSearch.prototype.form_clicked = function ( e, self ) {
 	e.preventDefault();
+	
 	// remove the current errors on screen, and reset the 1 global to 0
 	self.clear_alerts();
 	var word_grid_val = document.forms.word_search_form.word_grid.value;
 	var word_list_val = document.forms.word_search_form.word_list.value;
+
 	// if all the fields are empty, throw the empty field error
 	if ( '' === word_grid_val && '' === word_list_val ) {
 		self._ERROR_LVL = 2;
@@ -128,6 +186,7 @@ WordSearch.prototype.form_clicked = function ( e, self ) {
 			self._ERROR_LVL = 1;
 			self.display_form_error( self._ERROR_LVL, 'list', 'non-alpha' );
 		}
+
 		// if there are no errors, continue with the processing of the data
 		if ( 0 === self._ERROR_LVL ) {
 			
@@ -141,6 +200,7 @@ WordSearch.prototype.form_clicked = function ( e, self ) {
 				self
 			);
 			if ( reset_display_status ) {
+
 				// bring the user back up to the top of the grid 
 				// (slightly under the top of the screen)
 				self.jump_to_id( 'top' );
@@ -295,8 +355,10 @@ WordSearch.prototype.get_words = function ( data, data_type, self ) {
  */
 WordSearch.prototype.validate_input = function ( input, type ) {
 	if ( 'grid' === type ) {
+
 		// holds the indices of rows that are not the same length
 		var inconsistent_rows = [];
+
 		/*
 		 * Remove extraneous spaces at the beginning and end of the input,
 		 * then remove the spaces before and after newlines,
@@ -318,6 +380,7 @@ WordSearch.prototype.validate_input = function ( input, type ) {
 				return match.split( '' ).join( ' ' );
 			} 
 		).toUpperCase();
+
 		// check the length of each row in the word grid, they should all be the same
 		var trimmed_input_array = trimmed_input.split( '\n' );
 		for ( var i = 0; i < trimmed_input_array.length; i++ ) {
@@ -331,6 +394,7 @@ WordSearch.prototype.validate_input = function ( input, type ) {
 			return trimmed_input;
 		}
 	} else if ( 'list' === type ) {
+
 		// remove spaces from the element and remove any extra newline characters
 		var word_list = input.trim().replace(
 			/(\n){2,}/g,
@@ -416,8 +480,10 @@ WordSearch.prototype.found_word = function ( row, column, word_length, match_typ
  *
  */
 WordSearch.prototype.remove_word_from_list = function ( index ) {
+	
 	// scratch the word out on the list
 	jQuery( '#word_list_container li:contains(' + this.WORDS_TO_MATCH[ index ] + ')' ).css( 'color', '#777' );
+	
 	// if we've already matched the word, we don't need to search for it again.
 	this.WORDS_TO_MATCH.splice( index, 1 );
 	this.WORDS_TO_MATCH_TRIMMED.splice( index, 1 );
@@ -470,6 +536,7 @@ WordSearch.prototype.search_row = function () {
 			}
 		}
 		for ( var y = 0; y < this.WORDS_TO_MATCH_TRIMMED.length; y++ ) {
+
 			// search for backwards words in the row, by flipping the search word
 			var word_reversed = this.WORDS_TO_MATCH_TRIMMED[ y ].split( '' ).reverse().join( '' );
 			var index_of_word_reversed = this.WORD_GRID_ROWS[ i ].indexOf( word_reversed );
@@ -498,13 +565,16 @@ WordSearch.prototype.search_row = function () {
  *
  */
 WordSearch.prototype.search_column = function () {
+
 	// iterate over the first row, looking at each column
 	for ( var i = 0; i < this.WORD_GRID_ROWS[0].length; i++ ) {
+
 		// piece together each column into a searchable string
 		var column_string = '';
 		for ( var x = 0; x < Object.keys( this.WORD_GRID ).length; x++ ) {
 			column_string += this.WORD_GRID[ x ][ i ];
 		}
+
 		// search for words
 		for ( var y = 0; y < this.WORDS_TO_MATCH_TRIMMED.length; y++ ) {
 			var index_of_word = column_string.indexOf( this.WORDS_TO_MATCH_TRIMMED[ y ] );
@@ -515,6 +585,7 @@ WordSearch.prototype.search_column = function () {
 				y--;
 			}
 		}
+
 		// search for backwards words
 		for ( var z = 0; z < this.WORDS_TO_MATCH_TRIMMED.length; z++ ) {
 			var word_reversed = this.WORDS_TO_MATCH_TRIMMED[ z ].split( '' ).reverse().join( '' );
@@ -553,8 +624,10 @@ WordSearch.prototype.search_diagonal = function () {
 		console.log( 'Not enough space to search diagonally.' );
 		return;
 	}
+
 	// iterate over each row - traverses up and down
 	for ( var i = 0; i < Object.keys( this.WORD_GRID ).length; i++ ) {
+
 		// iterate over each column - traverses left and right
 		for ( var x = 0; x < this.WORD_GRID[ i ].length; x++ ) {
 			
@@ -571,10 +644,12 @@ WordSearch.prototype.search_diagonal = function () {
 				search_length = Math.min( this._GRID_ROW_LENGTH - x, this._GRID_ROW_COUNT - i );
 			}
 			if ( search_length > 0 ) {
+
 				// the distance to search diagonally from each letter
 				for ( var y = 0; y < search_length; y++ ) {
 					diagonal_right_string += this.WORD_GRID[ i + y ][ x + y ];
 				}
+
 				// check if the word exists in the diagonal down and to the right, forwards
 				for ( var z = 0; z < this.WORDS_TO_MATCH_TRIMMED.length; z++ ) {
 					var index_of_right_word = diagonal_right_string.indexOf( this.WORDS_TO_MATCH_TRIMMED[ z ] );
@@ -585,6 +660,7 @@ WordSearch.prototype.search_diagonal = function () {
 						z--;
 					}
 				}
+
 				// check for backwards words
 				for ( var d = 0; d < this.WORDS_TO_MATCH_TRIMMED.length; d++ ) {
 					var right_word_reversed = this.WORDS_TO_MATCH_TRIMMED[ d ].split( '' ).reverse().join( '' );
@@ -598,6 +674,7 @@ WordSearch.prototype.search_diagonal = function () {
 				}
 			}
 			search_length = 0;
+
 			// get the length of the diagonal from the character down to the left
 			if ( x >= this._LENGTH_OF_LONGEST_WORD && this._GRID_ROW_COUNT - i >= this._LENGTH_OF_LONGEST_WORD ) {
 				search_length = this._LENGTH_OF_LONGEST_WORD;
@@ -606,6 +683,7 @@ WordSearch.prototype.search_diagonal = function () {
 			}
 			
 			if ( search_length > 0 ) {
+
 				// the distance to search diagonally from each letter
 				for ( var q = 0; q < search_length; q++ ) {
 					diagonal_left_string += this.WORD_GRID[ i + q ][ x - q ];
@@ -621,6 +699,7 @@ WordSearch.prototype.search_diagonal = function () {
 						w--;
 					}
 				}
+
 				// check for forwards words
 				for ( var v = 0; v < this.WORDS_TO_MATCH_TRIMMED.length; v++ ) {
 					var left_word_reversed = this.WORDS_TO_MATCH_TRIMMED[ v ].split( '' ).reverse().join( '' );
@@ -649,14 +728,17 @@ WordSearch.prototype.search_diagonal = function () {
  */
 WordSearch.prototype.create_display = function () {
 	var table_html = '', list_html = '';
+
 	// set up table
 	table_html += '<table><tr><th class="horizontal_header"></th>';
+
 	// set up horizontal headers
 	for ( var i = 1; i <= this.WORD_GRID_ROWS[0].length; i++ ) {
 		table_html += '<th>' + i + '</th>';
 	}
 	table_html += '</tr>';
 	jQuery.each( this.WORD_GRID, function( x, row ) {
+		
 		// set up vertical headers
 		table_html += '<tr><th class="vertical_header">' + ( parseInt( x ) + 1 ) + '</th>';
 		
@@ -668,9 +750,11 @@ WordSearch.prototype.create_display = function () {
 	});
 	table_html += '</table>';
 	jQuery( '#word_table_container' ).html( table_html );
+	
 	// table styles
 	jQuery( '#word_table_container, #word_table_container th' ).css( 'color', 'white' );
 	jQuery( '#word_table_container td' ).css( { 'text-align': 'center', 'color': '#777' } );
+	
 	// set up list
 	list_html += '<ol>';
 	for ( var y = 0; y < this.WORDS_TO_MATCH.length; y++ ) {
@@ -735,6 +819,7 @@ WordSearch.prototype.clear_alerts = function () {
 	
 	// reset the error count
 	this._ERROR_LVL = 0;
+	
 	// hide the errors
 	jQuery( '#word_search_form label' ).css( 'color', '#333' );
 	jQuery( '#word_search_form #alert-area' ).hide();
@@ -755,6 +840,7 @@ WordSearch.prototype.clear_alerts = function () {
 WordSearch.prototype.jump_to_id = function ( id ) {
 	if ( '' !== id ) {
 		var valid_id = id.replace( /^(#)*/, '' );
+		
 		// force the URL hash to be reset
 		window.location.hash = '';
 		window.location.hash = valid_id;

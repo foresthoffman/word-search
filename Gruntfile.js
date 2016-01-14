@@ -21,7 +21,8 @@ module.exports = function( grunt ) {
 				]
 			},
 			sass: {
-				dir: 'styles'
+				dir: 'styles',
+				files: '<%= paths.sass.dir %>/**/*.scss'
 			},
 			css: {
 				dir: 'public/styles',
@@ -39,7 +40,7 @@ module.exports = function( grunt ) {
 				files: [{
 					expand: true,
 					cwd: '<%= paths.sass.dir %>',
-					src: ['*.scss'],
+					src: ['**/*.scss'],
 					dest: '<%= paths.css.dir %>',
 					ext: '.css'
 				}]
@@ -88,7 +89,7 @@ module.exports = function( grunt ) {
 				}
 			},
 			sass: {
-				files: '<%= paths.sass.dir %>',
+				files: '<%= paths.sass.files %>',
 				tasks: ['sass'],
 				options: {
 					spawn: false

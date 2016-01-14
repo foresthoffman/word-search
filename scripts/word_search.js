@@ -78,8 +78,7 @@ WordSearch.prototype.init = function ( default_file_path ) {
 	this._MAX_DIAGONAL_LENGTH = 0;
 	this._GRID_ROW_COUNT = 0;
 	this._GRID_ROW_LENGTH = 0;
-	this._ERROR_LVL = 0;
-	this._DEFAULT_FILE_PATH = ( 
+	this._DEFAULT_FILE_PATH = (
 		'undefined' !== typeof( default_file_path ) ?
 		default_file_path :
 		'data/word-search.txt'
@@ -101,11 +100,7 @@ WordSearch.prototype.init = function ( default_file_path ) {
  *
  */
 WordSearch.prototype.loaded = function ( self ) {
-	self.get_file_data(
-		self._DEFAULT_FILE_PATH,
-		self,
-		self.reset_display
-	);
+	self.get_file_data( self._DEFAULT_FILE_PATH, self.reset_display, self );
 
 	/**
 	 * Form submission click event
@@ -116,7 +111,7 @@ WordSearch.prototype.loaded = function ( self ) {
 	 *
 	 */
 	jQuery( 'input[type="submit"]' ).click( function ( e ) {
-		self.form_clicked( e, self );
+		self.get_form_data( e, self );
 	});
 };
 
@@ -128,24 +123,25 @@ WordSearch.prototype.loaded = function ( self ) {
  *
  * Input(s):
  * - url (string), contains a path to the data file to read.
+ * - callback (function), contains a function to pass the file data to.
  * - self (object), contains a reference to the current instance of the
  *		WordSearch class.
- * - callback (function), contains a function to pass the file data to.
  *
  * Returns: N/A
  *
  */
-WordSearch.prototype.get_file_data = function ( url, self, callback ) {
-	jQuery.get(
-		url,
-		function ( data ) {
+WordSearch.prototype.get_file_data = function ( url, callback, self ) {
+	jQuery.ajax({
+		url: url,
+		method: 'GET',
+		success: function ( data ) {
 			callback( data, 'file', self );
 		}
-	);
+	});
 };
 
 /**
- * Function: form_clicked
+ * Function: get_form_data
  * 
  * Description: Handles simple input validation before sending form data
  * 		off to be parsed (and checked more strictly). Clears up old
@@ -159,90 +155,77 @@ WordSearch.prototype.get_file_data = function ( url, self, callback ) {
  * Returns: N/A
  *
  */
-WordSearch.prototype.form_clicked = function ( e, self ) {
+WordSearch.prototype.get_form_data = function ( e, self ) {
 	e.preventDefault();
 	
 	// remove the current errors on screen, and reset the 1 global to 0
-	self.clear_alerts();
 	var word_grid_val = document.forms.word_search_form.word_grid.value;
 	var word_list_val = document.forms.word_search_form.word_list.value;
 
-	// if all the fields are empty, throw the empty field error
-	if ( '' === word_grid_val && '' === word_list_val ) {
-		self._ERROR_LVL = 2;
-		self.display_form_error( self._ERROR_LVL );
-	} else {
-		if ( '' === word_grid_val ) {
-			self._ERROR_LVL = 1;
-			self.display_form_error( self._ERROR_LVL, 'grid', 'empty' );
-		} else if ( word_grid_val.match( /[^a-zA-Z\s]/ ) ) {
-			self._ERROR_LVL = 1;
-			self.display_form_error( self._ERROR_LVL, 'grid', 'non-alpha' );
-		}
-		if ( '' === word_list_val ) {
-			self._ERROR_LVL = 1;
-			self.display_form_error( self._ERROR_LVL, 'list', 'empty' );
-		} else if ( word_list_val.match( /[^a-zA-Z\s]/ ) ) {
-			self._ERROR_LVL = 1;
-			self.display_form_error( self._ERROR_LVL, 'list', 'non-alpha' );
-		}
+	var new_data = [
+		word_grid_val,
+		word_list_val
+	];
 
-		// if there are no errors, continue with the processing of the data
-		if ( 0 === self._ERROR_LVL ) {
-			
-			// run data parsing and searching functions
-			var reset_display_status = self.reset_display(
-				[
-					word_grid_val,
-					word_list_val
-				],
-				'form',
-				self
-			);
-			if ( reset_display_status ) {
+	self.reset_display( new_data, 'form', self );
+};
 
-				// bring the user back up to the top of the grid 
-				// (slightly under the top of the screen)
-				self.jump_to_id( 'top' );
-			} else {
-				self.display_form_error( self._ERROR_LVL );
-			}
-		}
+WordSearch.prototype.map_to_obj = function ( data, origin ) {
+	var obj = {};
+	if ( 'file' === origin ) {
+		var split_data = data.split( "\n===<BREAK>===\n\n" );
+		obj = {
+			'word_grid': split_data[0],
+			'word_list': split_data[1]
+		};
+	} else if ( 'form' === origin ) {
+		obj = {
+			'word_grid': data[0],
+			'word_list': data[1]
+		};
 	}
+	return obj;
 };
 
 /**
  * Function: reset_display
  * 
  * Description: Intakes data from a file or the custom form then it passes 
- * 		that information to the get_words function. When the get_words function succeeds
+ * 		that information to the prepare_search function. When the prepare_search function succeeds
  *		the grid and word lists are recreated and the search functions are called.
  *
  * Input(s):
  * - data (string/array), contains the grid and word list that will be processed by
- * 		the get_words function.
- * - data_type (string), contains the values "file" or "form" to pass to the get_words
+ * 		the prepare_search function.
+ * - origin (string), contains the values "file" or "form" to pass to the prepare_search
  *		function to determine how to handle the string/array in the data parameter.
+ * - self (object), contains a reference to the current instance of the
+ *		WordSearch class. 
  *
  * Returns:
- * - FALSE, on failure, when get_words returns a false value.
- * - TRUE, on success, when get_words successfuly processes the new data.
+ * - FALSE, on failure, when prepare_search returns a false value.
+ * - TRUE, on success, when prepare_search successfuly processes the new data.
  *
  */
-WordSearch.prototype.reset_display = function ( data, data_type, self ) {
-	
-	// get_words will return true on success and false if the inputs are faulty.
-	if ( self.get_words( data, data_type, self ) ) {
+WordSearch.prototype.reset_display = function ( raw_data, origin, self ) {
+	var input_obj = self.map_to_obj( raw_data, origin );
+
+	self.clear_alerts();
+	var errors_array = self.validate_data( input_obj, origin, self );
+
+	if ( 0 !== errors_array.length ) {
+		self.error_handler( errors_array, self );
+	} else {
+		var trimmed_data_obj = self.trim_inputs( input_obj );
+		self.prepare_search( trimmed_data_obj, self );
 		self.create_display();
 		self.search_for_words();
-		return true;
-	} else {
-		return false;
+		self.jump_to_id( 'top' );
 	}
 };
 
 /**
- * Function: get_words
+ * Function: prepare_search
  * 
  * Description: Receives data from the reset_display function and
  *		parses the data differently depending on the type of data that it is handling.
@@ -254,162 +237,251 @@ WordSearch.prototype.reset_display = function ( data, data_type, self ) {
  * Input(s):
  * - data (string/array), contains the grid and word list to be processed. If in array
  *		form, data[0] is expected to hold the grid and data[1] the word list.
- * - data_type (string), contains the values "file" or "form" to determine how to 
- *		handle the string/array in the data parameter.
+ * - self (object), contains a reference to the current instance of the
+ *		WordSearch class.
  *
  * Returns: 
  * - FALSE, on failure, when the data can't be processed.
  * - TRUE, on success.
  *
  */
-WordSearch.prototype.get_words = function ( data, data_type, self ) {
-	if ( 'undefined' === typeof( data_type ) ) {
-		data_type = 'file';
-	}
+WordSearch.prototype.prepare_search = function ( input_obj, self ) {	
+	var word_grid = input_obj.word_grid;
+	var word_list = input_obj.word_list;
 	
-	var split_data;
-	var word_grid_string = '';
-	if ( 'form' === data_type ) {
-		word_grid_string = self.validate_input( data[0], 'grid' );
-	} else if ( 'file' === data_type ) {
-		split_data = data.split( /(\n){2}/g );
-		word_grid_string = self.validate_input( split_data[0], 'grid' );
-	}
+	var word_grid_rows = word_grid.split( '\n' );
 	
-	if ( 'undefined' !== typeof( word_grid_string ) ) {
-		var word_grid_rows = word_grid_string.split( '\n' );
-		
-		// reset WORD_GRID
-		self.WORD_GRID = {};
-		self.WORD_GRID_ROWS = [];
-		for ( var i = 0; i < word_grid_rows.length; i++ ) {
-			var word_grid_chars = word_grid_rows[ i ].split( ' ' );
-			for ( var x = 0; x < word_grid_chars.length; x++ ) {
-				self.WORD_GRID[ i ] = word_grid_chars;
-				self.WORD_GRID_ROWS[ i ] = word_grid_chars.join( ' ' ).replace( /[^\S\n]+/g, '' );
-			}
+	// reset WORD_GRID
+	self.WORD_GRID = {};
+	self.WORD_GRID_ROWS = [];
+
+	for ( var i = 0; i < word_grid_rows.length; i++ ) {
+		var word_grid_chars = word_grid_rows[ i ].split( ' ' );
+		for ( var x = 0; x < word_grid_chars.length; x++ ) {
+			self.WORD_GRID[ i ] = word_grid_chars;
+			self.WORD_GRID_ROWS[ i ] = word_grid_chars.join( ' ' ).replace( /[^\S\n]+/g, '' );
 		}
 	}
+
 	// reset WORDS_TO_MATCH & WORDS_TO_MATCH_TRIMMED
 	self.WORDS_TO_MATCH = [];
 	self.WORDS_TO_MATCH_TRIMMED = [];
-	var words_to_match_string = '';
-	if ( 'form' === data_type ) {
-		words_to_match_string = self.validate_input( data[1], 'list' );
-	} else if ( 'file' === data_type ) {
-		words_to_match_string = self.validate_input( split_data[4], 'list' );
-	}
 	
-	if ( 'undefined' !== typeof( words_to_match_string ) ) {
-		var words_to_match_array = words_to_match_string.split( "\n" );
-		jQuery.each( words_to_match_array, function( i, word ) {
-			self.WORDS_TO_MATCH.push( word );
-			self.WORDS_TO_MATCH_TRIMMED.push( word.replace( /[^\S\n]+/g, '' ) );
-		});
-		var sorted_words = self.WORDS_TO_MATCH;
-		sorted_words.sort( function( a, b ) {
-			
-			/*
-			 * returns > 0 -> b's index gets bumped below a's
-			 * returns < 0 -> a's index gets bumbed below b's
-			 * returns 0   -> indices are the same
-			 */
-			return b.length - a.length;
-		});
-		var sorted_words_trimmed = self.WORDS_TO_MATCH_TRIMMED;
-		sorted_words_trimmed.sort( function( a, b ) {
-			return b.length - a.length;
-		});
-		self._LENGTH_OF_LONGEST_WORD = sorted_words_trimmed[0].length;
-		self._LENGTH_OF_SHORTEST_WORD = sorted_words_trimmed[ sorted_words_trimmed.length - 1 ].length;
-		self._GRID_ROW_COUNT = Object.keys( self.WORD_GRID ).length;
-		self._GRID_ROW_LENGTH = self.WORD_GRID[0].length;
-		self._MAX_DIAGONAL_LENGTH = Math.min( self._GRID_ROW_COUNT, self._GRID_ROW_LENGTH );
-	}
-	if ( 'undefined' !== typeof( word_grid_string ) &&
-			'undefined' !== typeof( words_to_match_string ) ) {
-		return true;
-	} else {
-		// there was an error with the word grid data, so set the error level accordingly
-		self._ERROR_LVL = 3;
-		return false;
-	}
+	var words_to_match_array = word_list.split( "\n" );
+	jQuery.each( words_to_match_array, function ( i, word ) {
+		self.WORDS_TO_MATCH.push( word );
+		self.WORDS_TO_MATCH_TRIMMED.push( word.replace( /[^\S\n]+/g, '' ) );
+	});
+	var sorted_words = self.WORDS_TO_MATCH;
+	sorted_words.sort( function ( a, b ) {
+		
+		/*
+		 * returns > 0 -> b's index gets bumped below a's
+		 * returns < 0 -> a's index gets bumbed below b's
+		 * returns 0   -> indices are the same
+		 */
+		return b.length - a.length;
+	});
+	var sorted_words_trimmed = self.WORDS_TO_MATCH_TRIMMED;
+	sorted_words_trimmed.sort( function ( a, b ) {
+		return b.length - a.length;
+	});
+	self._LENGTH_OF_LONGEST_WORD = sorted_words_trimmed[0].length;
+	self._LENGTH_OF_SHORTEST_WORD = sorted_words_trimmed[ sorted_words_trimmed.length - 1 ].length;
+	self._GRID_ROW_COUNT = Object.keys( self.WORD_GRID ).length;
+	self._GRID_ROW_LENGTH = self.WORD_GRID[0].length;
+	self._MAX_DIAGONAL_LENGTH = Math.min( self._GRID_ROW_COUNT, self._GRID_ROW_LENGTH );
 };
 
-/**
- * Function: validate_input
- * 
- * Description: Receives data from the get_words function and parses the data according to 
- *		the value in the type parameter. It then ensures that the data is valid. 
- *		The data is then parsed based on its type and the resulting string is returned.
- *
- * Input(s):
- * - input (string), contains the grid or list to be validated.
- * - type (string), contains "grid" or "list", which determines how the data is validated.
- *
- * Returns: 
- * - NOTHING, on failure, when the word grid's rows are inconsistent lengths.
- * - STRING, on success, which contains the fully parsed and validated string to be processed by
- *		the get_words function.
- *
- */
-WordSearch.prototype.validate_input = function ( input, type ) {
-	if ( 'grid' === type ) {
+WordSearch.prototype.trim_inputs = function ( input_obj, origin ) {
+	if ( 'undefined' === typeof( input_obj ) ) {
+		return;
+	}
 
-		// holds the indices of rows that are not the same length
-		var inconsistent_rows = [];
+	var word_grid = input_obj.word_grid;
+	var word_list = input_obj.word_list;
 
-		/*
-		 * Remove extraneous spaces at the beginning and end of the input,
-		 * then remove the spaces before and after newlines,
-		 * then add spaces between any adjacent letters,
-		 * finally make the string uppercase.
-		 */
-		var trimmed_input = input.trim().replace(
-			/\s+(?=\n)/g,
-			''
-		).replace(
-			/\n[^\S\n]+(?=[a-zA-Z])/g,
-			'\n'
-		).replace(
-			/[^\S\n]+(?=[a-zA-Z])/g,
-			' '
-		).replace(
-			/([a-zA-Z]){2,}/g,
-			function( match ) {
-				return match.split( '' ).join( ' ' );
-			} 
-		).toUpperCase();
+	/*
+	 * Remove extraneous spaces at the beginning and end of the input,
+	 * then remove the spaces before and after newlines,
+	 * then add spaces between any adjacent letters,
+	 * finally make the string uppercase.
+	 */
+	var trimmed_word_grid = word_grid.trim().replace(
+		/\s+(?=\n)/g,
+		''
+	).replace(
+		/\n[^\S\n]+(?=[a-zA-Z])/g,
+		'\n'
+	).replace(
+		/[^\S\n]+(?=[a-zA-Z])/g,
+		' '
+	).replace(
+		/([a-zA-Z]){2,}/g,
+		function ( match ) {
+			return match.split( '' ).join( ' ' );
+		}
+	).toUpperCase();
 
-		// check the length of each row in the word grid, they should all be the same
-		var trimmed_input_array = trimmed_input.split( '\n' );
-		for ( var i = 0; i < trimmed_input_array.length; i++ ) {
-			if ( trimmed_input_array[ i ].length !== trimmed_input_array[0].length ) {
-				inconsistent_rows.push( i + 1 );
+	// remove spaces from the element and remove any extra newline characters
+	var trimmed_word_list = word_list.trim().replace(
+		/(\n){2,}/g,
+		'\n'
+	).replace(
+		/\s+(?=\n)/g,
+		''
+	).replace(
+		/\n[^\S\n]+(?=[a-zA-Z])/g,
+		'\n'
+	).replace(
+		/[^\S\n]+(?=[a-zA-Z])/g,
+		' '
+	).toUpperCase();
+
+	return {
+		'word_grid': trimmed_word_grid,
+		'word_list': trimmed_word_list
+	};
+};
+
+WordSearch.prototype.validate_data = function ( input_obj, origin, self ) {
+	var errors = [];
+
+	if ( 'undefined' === typeof( input_obj ) ||
+			'undefined' === typeof( input_obj.word_grid ) ||
+			'undefined' === typeof( input_obj.word_list ) ||
+			'' === input_obj.word_grid ||
+			'' === input_obj.word_list ) {
+		
+		if ( 'file' === origin ) {
+			errors.push(
+				{ 
+					'field_type': 'file',
+					'error_type': 'dne'
+				}
+			);
+
+			return errors;
+		} else if ( 'form' === origin ) {
+			if ( 'undefined' === typeof( input_obj.word_grid ) ||
+					'' === input_obj.word_grid ) {
+				errors.push(
+					{ 
+						'field_type': 'grid',
+						'error_type': 'empty'
+					}
+				);
+			}
+
+			if ( 'undefined' === typeof( input_obj.word_list ) ||
+					'' === input_obj.word_list ) {
+				errors.push(
+					{ 
+						'field_type': 'list',
+						'error_type': 'empty'
+					}
+				);
 			}
 		}
-		if ( 0 !== inconsistent_rows.length ) {
-			return;
-		} else {
-			return trimmed_input;
-		}
-	} else if ( 'list' === type ) {
+	}
 
-		// remove spaces from the element and remove any extra newline characters
-		var word_list = input.trim().replace(
-			/(\n){2,}/g,
-			'\n'
-		).replace(
-			/\s+(?=\n)/g,
-			''
-		).replace(
-			/\n[^\S\n]+(?=[a-zA-Z])/g,
-			'\n'
-		).replace(
-			/[^\S\n]+(?=[a-zA-Z])/g,
-			' '
-		).toUpperCase();
-		return word_list;
+	var trimmed_data_obj = self.trim_inputs( input_obj );
+	var word_grid = trimmed_data_obj.word_grid;
+	var word_list = trimmed_data_obj.word_list;
+	var row_array = word_grid.split( "\n" );
+
+	if ( word_grid.match( /[^a-zA-Z\s]/ ) ) {
+		errors.push(
+			{
+				'field_type': 'grid',
+				'error_type': 'non-alpha'
+			}
+		);
+	}
+
+	if ( word_list.match( /[^a-zA-Z\s]/ ) ) {
+		errors.push(
+			{
+				'field_type': 'list',
+				'error_type': 'non-alpha'
+			}
+		);
+	}
+
+	for ( var i = 0; i < row_array.length; i++ ) {
+		if ( row_array[ i ].length !== row_array[0].length ) {
+			errors.push(
+				{
+					'field_type': 'grid',
+					'error_type': 'row-length'
+				}
+			);
+		}
+	}
+
+	return errors;
+};
+
+WordSearch.prototype.error_handler = function ( error_array, self ) {
+	if ( 0 !== error_array.length ) {
+		console.log( error_array );
+
+		for ( var i = 0; i < error_array.length; i++ ) {
+			var error_obj = error_array[ i ];
+			var error_msg = '';
+			switch ( error_obj.field_type ) {
+				case 'grid':
+					if ( 'row-length' === error_obj.error_type ) {
+						error_msg = 'There is an issue with the grid field! Make sure ' +
+							'that the grid rows are all the same length.';
+						jQuery( '#word_search_form label[for="word_grid"]' ).css(
+							'color',
+							'#DB2406'
+						);
+					} else if ( 'empty' === error_obj.error_type ) {
+						error_msg = 'The grid field must be filled.';
+						jQuery( '#word_search_form label[for="word_grid"]' ).css(
+							'color',
+							'#DB2406'
+						);
+					} else if ( 'non-alpha' === error_obj.error_type ) {
+						error_msg = 'The grid field may only contain '+
+							'alphabetical characters and spaces.';
+						jQuery( '#word_search_form label[for="word_grid"]' ).css(
+							'color',
+							'#DB2406'
+						);
+					}
+					break;
+				case 'list':
+					if ( 'empty' === error_obj.error_type ) {
+						error_msg = 'The list field must be filled.';
+						jQuery( '#word_search_form label[for="word_list"]' ).css(
+							'color',
+							'#DB2406'
+						);
+					} else if ( 'non-alpha' === error_obj.error_type ) {
+						error_msg = 'The list field may only contain '+
+							'alphabetical characters and spaces.';
+						jQuery( '#word_search_form label[for="word_list"]' ).css(
+							'color',
+							'#DB2406'
+						);
+					}
+					break;
+				case 'file':
+					if ( 'dne' === error_obj.error_type ) {
+						error_msg = 'That file does not exist! Please try again.';
+						jQuery( '#word_search_form label[for="file_upload"]' ).css(
+							'color',
+							'#DB2406'
+						);
+					}
+					break;
+			}
+			jQuery( '#word_search_form #alert-list' ).append( '<li>' + error_msg + '</li>' );
+			jQuery( '#word_search_form #alert-area' ).show();
+		}
 	}
 };
 
@@ -501,10 +573,20 @@ WordSearch.prototype.remove_word_from_list = function ( index ) {
  */
 WordSearch.prototype.search_for_words = function () {
 	console.log( '################## Searching...' );
+	var initial_word_count = this.WORDS_TO_MATCH_TRIMMED.length;
+	
+	var start_time = Date.now();
 	this.search_row();
 	this.search_column();
 	this.search_diagonal();
-	console.log( '################## All done!' );
+	var elapsed_time = Date.now() - start_time;
+
+	var words_found_count = initial_word_count - this.WORDS_TO_MATCH_TRIMMED.length;
+	console.log(
+		'################## All done! (' + 
+		words_found_count + '/' + initial_word_count +
+		' found, ' + elapsed_time + 'ms)'
+	);
 };
 
 /**
@@ -523,7 +605,6 @@ WordSearch.prototype.search_for_words = function () {
  */
 WordSearch.prototype.search_row = function () {
 	for ( var i = 0; i < this.WORD_GRID_ROWS.length; i++ ) {
- 
 		for ( var x = 0; x < this.WORDS_TO_MATCH_TRIMMED.length; x++ ) {
 			
 			// search for forwards words in the row
@@ -737,13 +818,13 @@ WordSearch.prototype.create_display = function () {
 		table_html += '<th>' + i + '</th>';
 	}
 	table_html += '</tr>';
-	jQuery.each( this.WORD_GRID, function( x, row ) {
+	jQuery.each( this.WORD_GRID, function ( x, row ) {
 		
 		// set up vertical headers
 		table_html += '<tr><th class="vertical_header">' + ( parseInt( x ) + 1 ) + '</th>';
 		
 		// set up the rest of the row
-		jQuery.each( row, function( x, letter ) {
+		jQuery.each( row, function ( x, letter ) {
 			table_html += '<td>' + letter + '</td>';
 		});
 		table_html += '</tr>';
@@ -765,47 +846,6 @@ WordSearch.prototype.create_display = function () {
 };
 
 /**
- * Function: display_form_error
- * 
- * Description: Highlights the conflicting form input and alerts the user with a pre-defined error message.
- *
- * Input(s):
- * - error (string), the error code: 1 (individual input error), 2 (all fields empty), 3 (parsing error).
- * - label_type (string; optional), indicates which label to highlight if only one is conflicting: "grid" or "list".
- * - error_type (string; optional), the type of error: "empty" (one or more inputs were left empty) or "non-alpha" (an input
- * 		contains characters other than letters and whitespace). NOTE: These are for individual form inputs.
- *
- * Returns: N/A
- *
- */
-WordSearch.prototype.display_form_error = function ( error, label_type, error_type ) {
-	if ( 'undefined' === typeof( error ) ) {
-		return;
-	}
-	var msg = '';
-	switch( error ) {
-		case 1:
-			if ( 'empty' === error_type ) {
-				msg = 'The ' + label_type + ' field must be filled.';
-			} else if ( 'non-alpha' === error_type ) {
-				msg = 'The ' + label_type + ' field may only contain alphabetical characters and spaces.';
-			}
-			jQuery( '#word_search_form label[for="word_' + label_type + '"]' ).css( 'color', '#DB2406' );
-			break;
-		case 2:
-			msg = 'Both the grid and list fields must be filled.';
-			jQuery( '#word_search_form label' ).css( 'color', '#DB2406' );
-			break;
-		case 3:
-			msg = 'There is an issue with the grid field! Make sure that the grid rows are all the same length.';
-			jQuery( '#word_search_form label[for="word_grid"]' ).css( 'color', '#DB2406' );
-			break;
-	}
-	jQuery( '#word_search_form #alert-list' ).append( '<li>' + msg + '</li>' );
-	jQuery( '#word_search_form #alert-area' ).show();
-};
-
-/**
  * Function: clear_alerts
  * 
  * Description: Clears the error notifications on screen and changes the color of all form labels.
@@ -816,9 +856,6 @@ WordSearch.prototype.display_form_error = function ( error, label_type, error_ty
  *
  */
 WordSearch.prototype.clear_alerts = function () {
-	
-	// reset the error count
-	this._ERROR_LVL = 0;
 	
 	// hide the errors
 	jQuery( '#word_search_form label' ).css( 'color', '#333' );

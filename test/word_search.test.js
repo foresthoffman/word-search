@@ -60,8 +60,8 @@ describe( 'DOM Tests', function () {
 	});
 });
 
-describe( 'WordSearch Class', function () {
-	describe( '_DEFAULT_FILE_PATH property', function () {
+describe( 'WordSearch Class.', function () {
+	describe( '_DEFAULT_FILE_PATH', function () {
 		it( 'should be consistent with path passed to init()', function () {
 			var WordSearchClass = new word_search.WordSearch();
 			WordSearchClass.init( './data/word-search.txt' );
@@ -104,19 +104,19 @@ describe( 'WordSearch Class', function () {
 	});
 
 	describe( 'get_file_data()', function () {
-		it( 'should be passed a url, a WordSearch class reference, ' + 
-				'and a callback', 
+		it( 'should be passed a url, a WordSearch class reference, ' +
+				'and a callback',
 			function () {
 				var WordSearchClass = new word_search.WordSearch();
 				var get_file_data_spy = sinon.spy( WordSearchClass, 'get_file_data' );
-				WordSearchClass.init( 'data/word-search.fake.txt' );
+				WordSearchClass.init();
 
 				expect( get_file_data_spy.calledOnce ).to.be.true;
 				expect(
 					get_file_data_spy.calledWithExactly(
-						'data/word-search.fake.txt',
+						'data/word-search.txt',
 						WordSearchClass.reset_display,
-						WordSearchClass						
+						WordSearchClass
 					)
 				).to.be.true;
 
@@ -126,105 +126,415 @@ describe( 'WordSearch Class', function () {
 	});
 
 	describe( 'reset_display()', function () {
-		this.timeout( 4000 );
+		// this.timeout( 4000 );
 
-		var get_file_data_stub;
+		var ajax_stub;
 		var reset_display_stub;
 		var WordSearchClass = new word_search.WordSearch();
 		var test_data = fs.readFileSync(
-			'test/data/word-search.txt',
+			'test/data/word-search.err-no-errors.txt',
 			'utf-8'
 		);
 
 		beforeEach( function () {
-			//! this should be done differently, it isn't reliant on the actual ajax call
-			//! it just returns whatever you tell it to. 
-			get_file_data_stub = sinon.stub( WordSearchClass, 'get_file_data' ).yields(
+			ajax_stub = sinon.stub( jQuery, 'ajax' );
+
+			// simulate the GET request in get_file_data() and return the expected data
+			ajax_stub.withArgs(
+					{
+						url: 'data/word-search.txt',
+						success: sinon.match.func
+					}
+				).yieldsTo(
+				'success',
 				test_data,
 				'file',
 				WordSearchClass
 			);
+
+			// make reset_display an anonymous function to stop the progression of the word search
 			reset_display_stub = sinon.stub(
 				WordSearchClass,
 				'reset_display',
-				function ( data, data_type, self ) {}
+				function ( raw_data, origin, self ) {}
 			);
 		});
 
 		afterEach( function () {
-			get_file_data_stub.restore();
+			ajax_stub.restore();
 			reset_display_stub.restore();
 		});
 
-		it( 'should be called only once',
-			function ( done ) {
-				
+		it( 'should be called only once', function () {
+			WordSearchClass.init();
+
+			expect( reset_display_stub.calledOnce ).to.be.true;
+		});
+
+		it( 'should be passed the file data, a "file" string, and a WordSearch class reference',
+			function () {
 				WordSearchClass.init();
 
-				expect( reset_display_stub.calledOnce ).to.be.true;
-
-				done();
-			}
-		);
-
-		it( 'should be passed the file data, a "file" string, ' +
-				'and a WordSearch class reference',
-			function ( done ) {
-				
-				WordSearchClass.init();
-
-				expect(
-					reset_display_stub.calledWithExactly(
-						test_data,
-						'file',
-						WordSearchClass
-					)
-				).to.be.true;
-
-				done();
+				expect( reset_display_stub.args[0].length ).to.be.equal( 3 );
+				expect( reset_display_stub.args[0][0] ).to.be.equal( test_data );
+				expect( reset_display_stub.args[0][1] ).to.be.equal( 'file' );
+				expect( reset_display_stub.args[0][2] ).to.be.equal( WordSearchClass );
 			}
 		);
 	});
 
-	describe( 'validate_data()', function () {
-		var WordSearchClass = new word_search.WordSearch();
+	describe( 'Failing validate_data()', function () {
 		var validate_data_spy;
-		var test_data_normal = fs.readFileSync(
-			'test/data/word-search.txt',
-			'utf-8'
-		);
-		var test_data_bad = fs.readFileSync(
-			'test/data/word-search.bad.txt',
-			'utf-8'
-		);
+		var ajax_stub;
+		var WordSearchClass = new word_search.WordSearch();
+		var form_data = [];
+		var init_path = '';
+		var test_data;
+		var current_test;
+		var assert_counter = 0;
+		var assertion_data = [
+			{
+				'err': 'file-invalid',
+				'origin': 'file'
+			},
+			{
+				'err': 'grid-empty',
+				'origin': 'form'
+			},
+			{
+				'err': 'list-empty',
+				'origin': 'form'
+			},
+			{
+				'err': 'grid-empty-list-empty',
+				'origin': 'form'
+			},
+			{
+				'err': 'grid-alpha',
+				'origin': 'form'
+			},
+			{
+				'err': 'list-alpha',
+				'origin': 'form'
+			},
+			{
+				'err': 'grid-alpha-list-alpha',
+				'origin': 'form'
+			},
+			{
+				'err': 'grid-row-length',
+				'origin': 'form'
+			}
+		];
 
-		beforeEach( function () {
+		before( function () {
 			validate_data_spy = sinon.spy( WordSearchClass, 'validate_data' );
 		});
 
+		beforeEach( function () {
+			current_test = assertion_data[ assert_counter ];
+
+			// console.log( 'current_test.origin => ' + current_test.origin );
+			
+			init_path = 'data/word-search.err-' + current_test.err + '.txt';
+			test_data = fs.readFileSync(
+				'test/' + init_path,
+				'utf-8'
+			);
+			if ( 'file' === current_test.origin ) {
+				ajax_stub = sinon.stub( jQuery, 'ajax' );
+
+				// simulate a GET request to get specific errors (or lack of)
+				ajax_stub.withArgs(
+						{
+							url: init_path,
+							success: sinon.match.func
+						}
+					).yieldsTo(
+					'success',
+					test_data,
+					'file',
+					WordSearchClass
+				);
+
+				// initialize class with test-specific path
+				WordSearchClass.init( init_path );
+
+				ajax_stub.restore();
+			} else if ( 'form' === current_test.origin ) {
+
+				// prevent get_file_data from doing anything, we're running form tests here!
+				var get_file_data_stub = sinon.stub(
+					WordSearchClass,
+					'get_file_data',
+					function () {
+						// do nothing
+					}
+				);
+
+				// using the files to fill the form inputs
+				var input_obj = WordSearchClass.map_to_obj( test_data, 'file' );
+
+				jQuery( '#word_search_form_textarea_grid' ).val( input_obj.word_grid );
+				jQuery( '#word_search_form_textarea_list' ).val( input_obj.word_list );
+
+				// initialize class like normal to setup the click event listener
+				WordSearchClass.init();
+
+				jQuery( '#submit' ).trigger( 'click' );
+
+				get_file_data_stub.restore();
+			}
+		});
+
 		afterEach( function () {
-			validate_data_spy.restore();
+			validate_data_spy.reset();
+			assert_counter++;
+
+			// to mitigate the event listeners piling up as a result of repeated class instantiation
+			jQuery( '#submit' ).off( 'click', WordSearchClass.get_form_data );
 		});
 
-		
+		it( 'should return file-invalid error', function () {
+			expect(
+				validate_data_spy.returned([
+					{
+						'field_type': 'file',
+						'error_type': 'invalid'
+					}
+				])
+			).to.be.true;
+		});
+
 		it( 'should return grid-empty error', function () {
-			
-			// check that validate_data hasn't been called
-			expect( validate_data_spy.called ).to.be.false;
-
-
-			
-			// expect( validate_data_spy.returned( true ) ).to.be.true;
+			expect(
+				validate_data_spy.returned([
+					{
+						'field_type': 'grid',
+						'error_type': 'empty'
+					}
+				])
+			).to.be.true;
 		});
 
-		it( 'should return false with bad data', function () {
+		it( 'should return list-empty error', function () {
+			expect(
+				validate_data_spy.returned([
+					{
+						'field_type': 'list',
+						'error_type': 'empty'
+					}
+				])
+			).to.be.true;
+		});
 
-			// check that validate_data hasn't been called
-			expect( validate_data_spy.called ).to.be.false;
+		it( 'should return grid-empty and list-empty errors', function () {
+			expect(
+				validate_data_spy.returned([
+					{
+						'field_type': 'grid',
+						'error_type': 'empty'
+					},
+					{
+						'field_type': 'list',
+						'error_type': 'empty'
+					}
+				])
+			).to.be.true;
+		});
 
-			
+		it( 'should return grid-non-alpha error', function () {
+			expect(
+				validate_data_spy.returned([
+					{
+						'field_type': 'grid',
+						'error_type': 'non-alpha'
+					}
+				])
+			).to.be.true;
+		});
 
-			// expect( validate_data_spy.returned( false ) ).to.be.true;
+		it( 'should return list-non-alpha error', function () {
+			expect(
+				validate_data_spy.returned([
+					{
+						'field_type': 'list',
+						'error_type': 'non-alpha'
+					}
+				])
+			).to.be.true;
+		});
+
+		it( 'should return grid-non-alpha and list-non-alpha errors', function () {
+			expect(
+				validate_data_spy.returned([
+					{
+						'field_type': 'grid',
+						'error_type': 'non-alpha'
+					},
+					{
+						'field_type': 'list',
+						'error_type': 'non-alpha'
+					}
+				])
+			).to.be.true;
+		});
+
+		it( 'should return grid-row-length error', function () {
+			expect(
+				validate_data_spy.returned([
+					{
+						'field_type': 'grid',
+						'error_type': 'row-length'
+					}
+				])
+			).to.be.true;
 		});
 	});
+
+	/*
+	describe( 'Passing validate_data()', function () {
+		var validate_data_spy;
+		var ajax_stub;
+		var form_data = [];
+		var WordSearchClass = new word_search.WordSearch();
+		var init_path = '';
+		var test_data;
+		var current_test;
+		var assert_counter = 0;
+		var assertion_data = [
+			{
+				'err': 'file-invalid',
+				'origin': 'file'
+			},
+			{
+				'err': 'no-errors',
+				'origin': 'file'
+			},
+			{
+				'err': 'no-errors',
+				'origin': 'form'
+			},
+			{
+				'err': 'grid-empty',
+				'origin': 'form'
+			},
+			{
+				'err': 'list-empty',
+				'origin': 'form'
+			},
+			{
+				'err': 'grid-empty-list-empty',
+				'origin': 'form'
+			},
+			{
+				'err': 'grid-alpha',
+				'origin': 'form'
+			},
+			{
+				'err': 'list-alpha',
+				'origin': 'form'
+			},
+			{
+				'err': 'grid-alpha-list-alpha',
+				'origin': 'form'
+			},
+			{
+				'err': 'grid-row-length',
+				'origin': 'form'
+			}
+		];
+
+		before( function () {
+			validate_data_spy = sinon.spy( WordSearchClass, 'validate_data' );
+		});
+
+		beforeEach( function () {
+			current_test = assertion_data[ assert_counter ];
+			console.log( 'current_test.origin => ' + current_test.origin );
+			
+			init_path = 'data/word-search.err-' + current_test.err + '.txt';
+			test_data = fs.readFileSync(
+				'test/' + init_path,
+				'utf-8'
+			);
+			if ( 'file' === current_test.origin ) {
+
+				ajax_stub = sinon.stub( jQuery, 'ajax' );
+
+				// simulate a GET request to get specific errors (or lack of)
+				ajax_stub.withArgs(
+						{
+							url: init_path,
+							success: sinon.match.func
+						}
+					).yieldsTo(
+					'success',
+					test_data,
+					'file',
+					WordSearchClass
+				);
+
+				WordSearchClass.init( init_path );
+			} else if ( 'form' === current_test.origin ) {
+
+				// cheating by using the file to fill the form inputs
+				var input_obj = WordSearchClass.map_to_obj( test_data, 'file' );
+
+				jQuery( '#word_search_form_textarea_grid' ).val( input_obj.word_grid );
+				jQuery( '#word_search_form_textarea_list' ).val( input_obj.word_list );
+
+				WordSearchClass.init( init_path );
+
+				jQuery( '#submit' ).trigger( 'click' );
+			}
+
+		});
+
+		afterEach( function () {
+			validate_data_spy.reset();
+			if ( 'file' === current_test.origin ) {
+				ajax_stub.restore();
+			} else if ( 'form' === current_test.origin ) {
+
+			}
+			assert_counter++;
+		});
+
+		it( 'should return no file errors', function () {
+
+			// This test will pass with no errors, and we don't want the rest of
+			// the program to run. That's why we'll stub out just what we need.
+			var reset_display_stub = sinon.stub(
+				WordSearchClass,
+				'reset_display',
+				function ( raw_data, origin, self ) {
+					var input_obj = self.map_to_obj( raw_data, origin );
+					var errors_array = self.validate_data( input_obj, origin, self );
+				}
+			);
+
+			expect( validate_data_spy.returned( [] ) ).to.be.true;
+
+			reset_display_stub.restore();
+		});
+
+		it( 'should return no form errors', function () {
+
+			// This test will pass with no errors, and we don't want the rest of
+			// the program to run. That's why we'll stub out just what we need.
+			var reset_display_stub = sinon.stub(
+				WordSearchClass,
+				'reset_display',
+				function ( raw_data, origin, self ) {
+					var input_obj = self.map_to_obj( raw_data, origin );
+					var errors_array = self.validate_data( input_obj, origin, self );
+				}
+			);
+
+			expect( validate_data_spy.returned( [] ) ).to.be.true;
+
+			reset_display_stub.restore();
+		});
+	});*/
 });

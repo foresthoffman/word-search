@@ -110,9 +110,7 @@ WordSearch.prototype.loaded = function ( self ) {
 	 * throw an error.
 	 *
 	 */
-	jQuery( 'input[type="submit"]' ).click( function ( e ) {
-		self.get_form_data( e, self );
-	});
+	jQuery( '#submit' ).on( 'click', { 'self': self }, self.get_form_data );
 };
 
 /**
@@ -133,7 +131,6 @@ WordSearch.prototype.loaded = function ( self ) {
 WordSearch.prototype.get_file_data = function ( url, callback, self ) {
 	jQuery.ajax({
 		url: url,
-		method: 'GET',
 		success: function ( data ) {
 			callback( data, 'file', self );
 		}
@@ -155,12 +152,14 @@ WordSearch.prototype.get_file_data = function ( url, callback, self ) {
  * Returns: N/A
  *
  */
-WordSearch.prototype.get_form_data = function ( e, self ) {
+WordSearch.prototype.get_form_data = function ( e ) {
 	e.preventDefault();
+
+	var self = e.data.self;
 	
 	// remove the current errors on screen, and reset the 1 global to 0
-	var word_grid_val = document.forms.word_search_form.word_grid.value;
-	var word_list_val = document.forms.word_search_form.word_list.value;
+	var word_grid_val = jQuery( '#word_search_form_textarea_grid' ).val();
+	var word_list_val = jQuery( '#word_search_form_textarea_list' ).val();
 
 	var new_data = [
 		word_grid_val,
@@ -173,7 +172,7 @@ WordSearch.prototype.get_form_data = function ( e, self ) {
 WordSearch.prototype.map_to_obj = function ( data, origin ) {
 	var obj = {};
 	if ( 'file' === origin ) {
-		var split_data = data.split( "\n===<BREAK>===\n\n" );
+		var split_data = data.split( "\n\n===<BREAK>===\n\n" );
 		obj = {
 			'word_grid': split_data[0],
 			'word_list': split_data[1]
@@ -345,7 +344,7 @@ WordSearch.prototype.trim_inputs = function ( input_obj, origin ) {
 };
 
 WordSearch.prototype.validate_data = function ( input_obj, origin, self ) {
-	var errors = [];
+	var error_array = [];
 
 	if ( 'undefined' === typeof( input_obj ) ||
 			'undefined' === typeof( input_obj.word_grid ) ||
@@ -354,18 +353,17 @@ WordSearch.prototype.validate_data = function ( input_obj, origin, self ) {
 			'' === input_obj.word_list ) {
 		
 		if ( 'file' === origin ) {
-			errors.push(
+			error_array.push(
 				{ 
 					'field_type': 'file',
-					'error_type': 'dne'
+					'error_type': 'invalid'
 				}
 			);
-
-			return errors;
+			return error_array;
 		} else if ( 'form' === origin ) {
 			if ( 'undefined' === typeof( input_obj.word_grid ) ||
 					'' === input_obj.word_grid ) {
-				errors.push(
+				error_array.push(
 					{ 
 						'field_type': 'grid',
 						'error_type': 'empty'
@@ -375,7 +373,7 @@ WordSearch.prototype.validate_data = function ( input_obj, origin, self ) {
 
 			if ( 'undefined' === typeof( input_obj.word_list ) ||
 					'' === input_obj.word_list ) {
-				errors.push(
+				error_array.push(
 					{ 
 						'field_type': 'list',
 						'error_type': 'empty'
@@ -391,7 +389,7 @@ WordSearch.prototype.validate_data = function ( input_obj, origin, self ) {
 	var row_array = word_grid.split( "\n" );
 
 	if ( word_grid.match( /[^a-zA-Z\s]/ ) ) {
-		errors.push(
+		error_array.push(
 			{
 				'field_type': 'grid',
 				'error_type': 'non-alpha'
@@ -400,7 +398,7 @@ WordSearch.prototype.validate_data = function ( input_obj, origin, self ) {
 	}
 
 	if ( word_list.match( /[^a-zA-Z\s]/ ) ) {
-		errors.push(
+		error_array.push(
 			{
 				'field_type': 'list',
 				'error_type': 'non-alpha'
@@ -410,22 +408,20 @@ WordSearch.prototype.validate_data = function ( input_obj, origin, self ) {
 
 	for ( var i = 0; i < row_array.length; i++ ) {
 		if ( row_array[ i ].length !== row_array[0].length ) {
-			errors.push(
+			error_array.push(
 				{
 					'field_type': 'grid',
 					'error_type': 'row-length'
 				}
 			);
+			break;
 		}
 	}
-
-	return errors;
+	return error_array;
 };
 
 WordSearch.prototype.error_handler = function ( error_array, self ) {
 	if ( 0 !== error_array.length ) {
-		console.log( error_array );
-
 		for ( var i = 0; i < error_array.length; i++ ) {
 			var error_obj = error_array[ i ];
 			var error_msg = '';
@@ -470,7 +466,7 @@ WordSearch.prototype.error_handler = function ( error_array, self ) {
 					}
 					break;
 				case 'file':
-					if ( 'dne' === error_obj.error_type ) {
+					if ( 'invalid' === error_obj.error_type ) {
 						error_msg = 'That file does not exist! Please try again.';
 						jQuery( '#word_search_form label[for="file_upload"]' ).css(
 							'color',

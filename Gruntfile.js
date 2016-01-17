@@ -80,6 +80,27 @@ module.exports = function( grunt ) {
 				src: '<%= paths.test.files %>'
 			}
 		},
+		exec: {
+			zip: {
+				cmd: function ( source, dest, version ) {
+					var pkg_name = grunt.template.process( '<%= pkg.name %>' );
+
+					if ( 'undefined' === typeof( source ) ) {
+						source = './public/';
+					}
+
+					if ( 'undefined' === typeof( version ) ) {
+						version = grunt.template.process( '<%= pkg.version %>' );
+					}
+
+					if ( 'undefined' === typeof( dest ) ) {
+						dest = '../zips/' + pkg_name + '/' + pkg_name + '-' + version + '.zip';
+					}
+
+					return 'zip -r --exclude=*.DS_Store* ' + dest + ' ' + source;
+				}
+			}
+		},
 		watch: {
 			jshint: {
 				files: '<%= paths.js.files %>',
@@ -118,9 +139,9 @@ module.exports = function( grunt ) {
 	});
 
 	/* Custom Tasks */
-	
+
 	// building and deployment
-	grunt.registerTask( 'build', ['jshint', 'sass', 'mochaTest', 'concat'] );
+	grunt.registerTask( 'build', ['jshint', 'sass', 'mochaTest', 'concat', 'exec:zip'] );
 
 	// automated checks
 	grunt.registerTask( 'dev', 'concurrent:dev' );

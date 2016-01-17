@@ -292,7 +292,7 @@ WordSearch.prototype.prepare_search = function ( input_obj, self ) {
 	self._MAX_DIAGONAL_LENGTH = Math.min( self._GRID_ROW_COUNT, self._GRID_ROW_LENGTH );
 };
 
-WordSearch.prototype.trim_inputs = function ( input_obj, origin ) {
+WordSearch.prototype.trim_inputs = function ( input_obj ) {
 	if ( 'undefined' === typeof( input_obj ) ) {
 		return;
 	}
@@ -420,7 +420,7 @@ WordSearch.prototype.validate_data = function ( input_obj, origin, self ) {
 	return error_array;
 };
 
-WordSearch.prototype.error_handler = function ( error_array, self ) {
+WordSearch.prototype.error_handler = function ( error_array ) {
 	if ( 0 !== error_array.length ) {
 		for ( var i = 0; i < error_array.length; i++ ) {
 			var error_obj = error_array[ i ];

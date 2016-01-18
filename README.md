@@ -1,6 +1,7 @@
 # Word Search Solver
 
-<a href='http://forest.stfhs.net/forest/apps/word-search/' target='_blank'>Live App</a>
+<a href='http://foresthoffman.github.io/word-search/' target='_blank'>Live App</a>
+<a href='http://forest.stfhs.net/forest/?project=javascript-word-search-solver' target='_blank'>Learn More</a>
 
 This web app grabs a default word grid and word list from a file, and offers a form which allows users to enter custom word grids and word lists into the word search solver. The data is then processed and displayed on screen. The JavaScript console contains more detailed information on the matches, including the position and direction of each match.
 

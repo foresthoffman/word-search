@@ -1,3 +1,4 @@
+// Variables
 $font_list:		Verdana, Helvetica, Sans-serif;
 $dark_grey:		#333;
 $light_grey:	#777;
@@ -23,16 +24,17 @@ body {
 	overflow: hidden;
 }
 
-/* this give the navbar brand a slight diving line */
+// this gives the navbar brand a slight diving line
 .navbar-header {
 	border-right: 1px solid $egg_white;
 }
 
-/**
- * Main Content Styles
- */
+//
+// Main Content Styles
+//
 
 #main_content {
+	max-width: 100%;
 	float: left;
 	position: relative;
 	left: 50%;
@@ -53,7 +55,7 @@ body {
 
 #word_table_container {
 	max-width: 100%;
-	overflow: auto;
+	overflow-x: scroll;
 	background-color: $dark_grey;
 	padding: 10px 10px 10px 7.5px;
 	
@@ -76,9 +78,9 @@ body {
 	}
 }
 
-/**
- * Footer Styles
- */
+//
+// Footer Styles
+//
 
 #footer {
 	clear: both;
@@ -103,14 +105,14 @@ body {
 	}
 }
 
-/* fixes a glitch with the nav collapse toggle button */
+// fixes a glitch with the nav collapse toggle button
 .navbar-toggle .icon-bar + .icon-bar {
 	margin-top: 6px;
 }
 
-/**
- * Desktop Styles
- */
+//
+// Desktop Styles
+//
 
 @media ( min-width: 768px ) {
 	@mixin margin_centered {

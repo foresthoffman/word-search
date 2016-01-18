@@ -18,25 +18,21 @@ body {
   border-right: 1px solid #eee;
 }
 
-/* main content positioning */
+/**
+ * Main Content Positioning
+ */
 #main_content {
   float: left;
   position: relative;
   left: 50%;
 }
-
-#word_list_container,
-#word_table_container {
-  float: left;
-  position: relative;
+#main_content .content_container {
   left: -50%;
 }
 
-/* end main content positioning */
 #word_list_container {
   margin-left: 20%;
 }
-
 #word_list_container ol {
   padding-left: 30px;
 }
@@ -47,46 +43,37 @@ body {
   background-color: #333;
   padding: 10px 10px 10px 7.5px;
 }
-
 #word_table_container table {
   table-layout: fixed;
 }
-
-#word_table_container td,
-#word_table_container th {
+#word_table_container .table_data, #word_table_container .table_header {
   width: 20px;
   height: 20px;
   text-align: center;
   vertical-align: center;
 }
-
-#word_table_container th {
+#word_table_container .table_header {
   font-size: 0.5em;
 }
 
+/**
+ * Footer Positioning
+ */
 #footer {
   clear: both;
   padding-top: 30px;
 }
-
 #footer #note {
   font-size: 1.5em;
-}
-
-#word_search_form td {
-  vertical-align: top;
 }
 
 #word_search_form .alert {
   display: none;
 }
-
-.word_search_form_textarea {
+#word_search_form .word_search_form_textarea {
   width: 100%;
   min-height: 200px;
   max-width: 100%;
-  font-size: 1.1em;
-  font-family: Verdana, Helvetica, Sans-serif;
 }
 
 /* fixes a glitch with the nav collapse toggle button */
@@ -94,18 +81,22 @@ body {
   margin-top: 6px;
 }
 
+/**
+ * Desktop Positioning
+ */
 @media (min-width: 768px) {
-  .word_search_form_textarea {
-    min-height: 100px;
-    font-size: 1.1em;
-    font-family: Verdana, Helvetica, Sans-serif;
-  }
-
   #word_search_form {
     width: 100%;
   }
+  #word_search_form .form-group {
+    width: 75%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  #word_search_form .word_search_form_textarea {
+    min-height: 100px;
+  }
 
-  #word_search_form .form-group,
   #footer #note {
     width: 75%;
     margin-left: auto;

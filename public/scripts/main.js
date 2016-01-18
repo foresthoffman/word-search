@@ -1024,7 +1024,7 @@ WordSearch.prototype.create_display = function () {
 	var table_html = '', list_html = '';
 
 	// set up table
-	table_html += '<table><tr><th class="horizontal_header"></th>';
+	table_html += '<table><tr><th class="table_header horizontal_header"></th>';
 
 	// set up horizontal headers
 	for ( var i = 1; i <= this.WORD_GRID_ROWS[0].length; i++ ) {
@@ -1034,11 +1034,11 @@ WordSearch.prototype.create_display = function () {
 	jQuery.each( this.WORD_GRID, function ( x, row ) {
 		
 		// set up vertical headers
-		table_html += '<tr><th class="vertical_header">' + ( parseInt( x ) + 1 ) + '</th>';
+		table_html += '<tr><th class="table_header vertical_header">' + ( parseInt( x ) + 1 ) + '</th>';
 		
 		// set up the rest of the row
 		jQuery.each( row, function ( x, letter ) {
-			table_html += '<td>' + letter + '</td>';
+			table_html += '<td class="table_data">' + letter + '</td>';
 		});
 		table_html += '</tr>';
 	});

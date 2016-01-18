@@ -18,27 +18,26 @@ body {
 	border-right: 1px solid #eee;
 }
 
-/* main content positioning */
+/**
+ * Main Content Positioning
+ */
+
 #main_content {
 	float: left;
 	position: relative;
 	left: 50%;
+	
+	.content_container {
+		left: -50%;
+	}
 }
-
-#word_list_container,
-#word_table_container {
-	float: left;
-	position: relative;
-	left: -50%;
-}
-/* end main content positioning */
 
 #word_list_container {
 	margin-left: 20%;
-}
-
-#word_list_container ol {
-	padding-left: 30px;
+	
+	ol {
+		padding-left: 30px;
+	}
 }
 
 #word_table_container {
@@ -46,70 +45,79 @@ body {
 	overflow: auto;
 	background-color: #333;
 	padding: 10px 10px 10px 7.5px;
+	
+	table {
+		table-layout: fixed;
+	}
+	
+	.table_data {
+		width: 20px;
+		height: 20px;
+		text-align: center;
+		vertical-align: center;
+	}
+	
+	.table_header {
+		@extend .table_data;
+		font-size: 0.5em;
+	}
 }
 
-#word_table_container table {
-	table-layout: fixed;
-}
-
-#word_table_container td,
-#word_table_container th {
-	width: 20px;
-	height: 20px;
-	text-align: center;
-	vertical-align: center;
-}
-
-#word_table_container th {
-	font-size: 0.5em;
-}
+/**
+ * Footer Positioning
+ */
 
 #footer {
 	clear: both;
 	padding-top: 30px;
+
+	#note {
+		font-size: 1.5em;
+	}
 }
 
-#footer #note {
-	font-size: 1.5em;
-}
+#word_search_form {
+	.alert {
+		display: none;
+	}
 
-#word_search_form td {
-	vertical-align: top;
-}
-
-#word_search_form .alert {
-	display: none;
-}
-
-.word_search_form_textarea {
-	width: 100%;
-	min-height: 200px;
-	max-width: 100%;
-	font-size: 1.1em;
-	font-family: Verdana, Helvetica, Sans-serif;
+	.word_search_form_textarea {
+		width: 100%;
+		min-height: 200px;
+		max-width: 100%;
+	}
 }
 
 /* fixes a glitch with the nav collapse toggle button */
-.navbar-toggle .icon-bar+.icon-bar {
+.navbar-toggle .icon-bar + .icon-bar {
 	margin-top: 6px;
 }
 
+/**
+ * Desktop Positioning
+ */
+
 @media ( min-width: 768px ) {
-	.word_search_form_textarea {
-		min-height: 100px;
-		font-size: 1.1em;
-		font-family: Verdana, Helvetica, Sans-serif;
+	@mixin width_and_margin {
+		width: 75%;
+		margin-left: auto;
+		margin-right: auto;
 	}
 
 	#word_search_form {
 		width: 100%;
+		
+		.form-group {
+			@include width_and_margin;
+		}
+		
+		.word_search_form_textarea {
+			min-height: 100px;
+		}
 	}
 
-	#word_search_form .form-group,
 	#footer #note {
-		width: 75%;
-		margin-left: auto;
-		margin-right: auto;
+		@include width_and_margin;
 	}
 
 	#word_list_container {

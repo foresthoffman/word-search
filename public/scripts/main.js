@@ -1023,18 +1023,18 @@ WordSearch.prototype.search_diagonal = function () {
 WordSearch.prototype.create_display = function () {
 	var table_html = '', list_html = '';
 
-	// set up table
-	table_html += '<table><tr><th class="table_header horizontal_header"></th>';
+	// set up table, and add an empty header tag (top left blank space)
+	table_html += '<table><tr><th class="table_header"></th>';
 
 	// set up horizontal headers
 	for ( var i = 1; i <= this.WORD_GRID_ROWS[0].length; i++ ) {
-		table_html += '<th>' + i + '</th>';
+		table_html += '<th class="table_header">' + i + '</th>';
 	}
 	table_html += '</tr>';
 	jQuery.each( this.WORD_GRID, function ( x, row ) {
 		
 		// set up vertical headers
-		table_html += '<tr><th class="table_header vertical_header">' + ( parseInt( x ) + 1 ) + '</th>';
+		table_html += '<tr><th class="table_header">' + ( parseInt( x ) + 1 ) + '</th>';
 		
 		// set up the rest of the row
 		jQuery.each( row, function ( x, letter ) {
@@ -1044,10 +1044,6 @@ WordSearch.prototype.create_display = function () {
 	});
 	table_html += '</table>';
 	jQuery( '#word_table_container' ).html( table_html );
-	
-	// table styles
-	jQuery( '#word_table_container, #word_table_container th' ).css( 'color', 'white' );
-	jQuery( '#word_table_container td' ).css( { 'text-align': 'center', 'color': '#777' } );
 	
 	// set up list
 	list_html += '<ol>';

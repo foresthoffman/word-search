@@ -176,6 +176,7 @@ WordSearch.prototype.get_form_data = function ( e ) {
  *			'word_list': ...
  *		}
  * - (null object), when the origin argument is empty.
+ *
  */
 WordSearch.prototype.map_to_obj = function ( data, origin ) {
 	var obj = {};
@@ -228,6 +229,58 @@ WordSearch.prototype.reset_display = function ( raw_data, origin, self ) {
 };
 
 /**
+ * Function: sort_object_array
+ * 
+ * Description: Serves as a callback to the Array.prototype.sort() function. 
+ *		It sorts object arrays.
+ *
+ * Input(s):
+ * - a (object), contains an element of the object array.
+ * - b (object), contains the next element of the object array.
+ *
+ * Returns:
+ * - > 0 (int), when the b element's word length is less than a's, b will get bumped below a.
+ * - < 0 (int), when the a element's word length is less than b's, a will get bumped below b.
+ * - 0 (int), when the indices are the same, nothing happens.
+ *
+ */
+WordSearch.prototype.sort_object_array = function ( a, b ) {
+	return b.word.length - a.word.length;
+};
+
+/**
+ * Function: find_obj_in_arr
+ * 
+ * Description: Find the first instance of an object with a specific property in an array.
+ *
+ * Input(s):
+ * - a (object), contains an element of the object array.
+ * - b (object), contains the next element of the object array.
+ *
+ * Returns:
+ * - (-1) (int), the object was not found.
+ * - >= 0 (int), the index of the object in the array.
+ *
+ */
+WordSearch.prototype.find_obj_in_arr = function ( arr, prop, value ) {
+	var index = -1;
+
+	if ( 'undefined' !== typeof( arr ) ||
+			'undefined' !== typeof( prop ) ||
+			'undefined' !== typeof( value ) ) {
+
+		for ( var i = 0; i < arr.length; i++ ) {
+			if ( value === arr[ i ][ prop ] ) {
+				index = i;
+				break;
+			}
+		}
+	}
+
+	return index;
+};
+
+/**
  * Function: prepare_search
  * 
  * Description: Receives data from the reset_display function and parses it to get the word grid 
@@ -266,25 +319,19 @@ WordSearch.prototype.prepare_search = function ( input_obj, self ) {
 	
 	var words_to_match_array = word_list.split( "\n" );
 	jQuery.each( words_to_match_array, function ( i, word ) {
-		self.WORDS_TO_MATCH.push( word );
-		self.WORDS_TO_MATCH_TRIMMED.push( word.replace( /[^\S\n]+/g, '' ) );
+		self.WORDS_TO_MATCH.push( { 'id': i, 'word': word } );
+		self.WORDS_TO_MATCH_TRIMMED.push( { 'id': i, 'word': word.replace( /[^\S\n]+/g, '' ) } );
 	});
 	var sorted_words = self.WORDS_TO_MATCH;
-	sorted_words.sort( function ( a, b ) {
-		
-		/*
-		 * returns > 0 -> b's index gets bumped below a's
-		 * returns < 0 -> a's index gets bumbed below b's
-		 * returns 0   -> indices are the same
-		 */
-		return b.length - a.length;
-	});
+	sorted_words.sort( self.sort_object_array );
+
 	var sorted_words_trimmed = self.WORDS_TO_MATCH_TRIMMED;
-	sorted_words_trimmed.sort( function ( a, b ) {
-		return b.length - a.length;
-	});
-	self._LENGTH_OF_LONGEST_WORD = sorted_words_trimmed[0].length;
-	self._LENGTH_OF_SHORTEST_WORD = sorted_words_trimmed[ sorted_words_trimmed.length - 1 ].length;
+	sorted_words_trimmed.sort( self.sort_object_array );
+	
+	self._LENGTH_OF_LONGEST_WORD = sorted_words_trimmed[0].word.length;
+	self._LENGTH_OF_SHORTEST_WORD = sorted_words_trimmed[
+		sorted_words_trimmed.length - 1 
+	].word.length;
 	self._GRID_ROW_COUNT = Object.keys( self.WORD_GRID ).length;
 	self._GRID_ROW_LENGTH = self.WORD_GRID[0].length;
 	self._MAX_DIAGONAL_LENGTH = Math.min( self._GRID_ROW_COUNT, self._GRID_ROW_LENGTH );
@@ -317,12 +364,17 @@ WordSearch.prototype.trim_inputs = function ( input_obj ) {
 	var word_list = input_obj.word_list;
 
 	/*
-	 * Remove extraneous spaces at the beginning and end of the input,
-	 * then remove the spaces before and after newlines,
-	 * then add spaces between any adjacent letters,
-	 * finally make the string uppercase.
+	 * - Remove quotations and dashes
+	 * - Remove extraneous spaces at the beginning and end of the input
+	 * - Remove the spaces after newlines to just one newline
+	 * - Remove the spaces before newlines
+	 * - Add spaces between any adjacent letters
+	 * - Make the string uppercase
 	 */
 	var trimmed_word_grid = word_grid.trim().replace(
+		/[\'\"\-]+/g,
+		''
+	).replace(
 		/\s+(?=\n)/g,
 		''
 	).replace(
@@ -338,8 +390,20 @@ WordSearch.prototype.trim_inputs = function ( input_obj ) {
 		}
 	).toUpperCase();
 
-	// remove spaces from the element and remove any extra newline characters
+	/*
+	 * - Remove quotations and dashes
+	 * - Reduce groupings of two or more newline characters to one newline character
+	 * - Remove whitespace characters that precede newline characters
+	 * - Replace groups of one newline character followed by whitespace characters that precede
+	 *		an alphabetical character with one newline character
+	 * - Replace groups of whitespace characters that precede an alphabetical character with 
+	 *		a space
+	 * - Make the string uppercase
+	 */
 	var trimmed_word_list = word_list.trim().replace(
+		/[\'\"\-]+/g,
+		''
+	).replace(
 		/(\n){2,}/g,
 		'\n'
 	).replace(
@@ -404,6 +468,7 @@ WordSearch.prototype.trim_inputs = function ( input_obj ) {
  *			'error_type': 'row-length'
  *		}
  * - (empty array), the array is empty when there are no errors.
+ *
  */
 WordSearch.prototype.validate_data = function ( input_obj, origin, self ) {
 	var error_array = [];
@@ -629,19 +694,30 @@ WordSearch.prototype.found_word = function ( row, column, word_length, match_typ
  * Returns: N/A
  *
  */
-WordSearch.prototype.remove_word_from_list = function ( index ) {
+WordSearch.prototype.remove_word_from_list = function ( word_id ) {
 	
+	var untrimmed_index = this.find_obj_in_arr(
+		this.WORDS_TO_MATCH,
+		'id',
+		word_id
+	);
+	var trimmed_index = this.find_obj_in_arr(
+		this.WORDS_TO_MATCH_TRIMMED,
+		'id',
+		word_id
+	);
+
 	// scratch the word out on the list
 	jQuery(
-		'#word_list_container li:contains(' + this.WORDS_TO_MATCH[ index ] + ')'
+		'#word_list_container li:contains(' + this.WORDS_TO_MATCH[ untrimmed_index ].word + ')'
 	).css(
 		'color',
 		'#777'
 	);
-	
+
 	// if we've already matched the word, we don't need to search for it again.
-	this.WORDS_TO_MATCH.splice( index, 1 );
-	this.WORDS_TO_MATCH_TRIMMED.splice( index, 1 );
+	this.WORDS_TO_MATCH.splice( untrimmed_index, 1 );
+	this.WORDS_TO_MATCH_TRIMMED.splice( trimmed_index, 1 );
 };
 
 /**
@@ -692,14 +768,24 @@ WordSearch.prototype.search_row = function () {
 	for ( var i = 0; i < this.WORD_GRID_ROWS.length; i++ ) {
 		for ( var x = 0; x < this.WORDS_TO_MATCH_TRIMMED.length; x++ ) {
 			
+			var word_x = this.WORDS_TO_MATCH_TRIMMED[ x ].word;
+			var word_id_x = this.WORDS_TO_MATCH_TRIMMED[ x ].id;
+
 			// search for forwards words in the row
 			var index_of_word = this.WORD_GRID_ROWS[ i ].indexOf(
-				this.WORDS_TO_MATCH_TRIMMED[ x ]
+				word_x
 			);
 			if ( -1 !== index_of_word ) {
+				var untrimmed_index_x = this.find_obj_in_arr( 
+					this.WORDS_TO_MATCH,
+					'id',
+					word_id_x
+				);
+				var untrimmed_word_x = this.WORDS_TO_MATCH[ untrimmed_index_x ].word;
+
 				console.log(
 					'Horizontal match for "' +
-					this.WORDS_TO_MATCH[ x ] +
+					untrimmed_word_x +
 					'" on row ' + ( i + 1 ) +
 					' starting at letter #' +
 					( index_of_word + 1 )
@@ -707,23 +793,33 @@ WordSearch.prototype.search_row = function () {
 				this.found_word(
 					i,
 					index_of_word,
-					this.WORDS_TO_MATCH_TRIMMED[ x ].length,
+					untrimmed_word_x.length,
 					'row',
 					'#54A9CC'
 				);
-				this.remove_word_from_list( x );
+				this.remove_word_from_list( word_id_x );
 				x--;
 			}
 		}
 		for ( var y = 0; y < this.WORDS_TO_MATCH_TRIMMED.length; y++ ) {
 
+			var word_y = this.WORDS_TO_MATCH_TRIMMED[ y ].word;
+			var word_id_y = this.WORDS_TO_MATCH_TRIMMED[ y ].id;
+
 			// search for backwards words in the row, by flipping the search word
-			var word_reversed = this.WORDS_TO_MATCH_TRIMMED[ y ].split( '' ).reverse().join( '' );
+			var word_reversed = word_y.split( '' ).reverse().join( '' );
 			var index_of_word_reversed = this.WORD_GRID_ROWS[ i ].indexOf( word_reversed );
 			if ( -1 !== index_of_word_reversed ) {
+				var untrimmed_index_y = this.find_obj_in_arr( 
+					this.WORDS_TO_MATCH,
+					'id',
+					word_id_y
+				);
+				var untrimmed_word_y = this.WORDS_TO_MATCH[ untrimmed_index_y ].word;
+
 				console.log(
 					'Horizontal match (reversed) for "' +
-					this.WORDS_TO_MATCH[ y ] +
+					untrimmed_word_y +
 					'" on row ' +
 					( i + 1 ) +
 					' ending at letter #' +
@@ -732,11 +828,11 @@ WordSearch.prototype.search_row = function () {
 				this.found_word(
 					i,
 					index_of_word_reversed,
-					this.WORDS_TO_MATCH_TRIMMED[ y ].length,
+					untrimmed_word_y.length,
 					'row',
 					'#54A9CC'
 				);
-				this.remove_word_from_list( y );
+				this.remove_word_from_list( word_id_y );
 				y--;
 			}
 		}
@@ -771,11 +867,21 @@ WordSearch.prototype.search_column = function () {
 
 		// search for words
 		for ( var y = 0; y < this.WORDS_TO_MATCH_TRIMMED.length; y++ ) {
-			var index_of_word = column_string.indexOf( this.WORDS_TO_MATCH_TRIMMED[ y ] );
+			var word_y = this.WORDS_TO_MATCH_TRIMMED[ y ].word;
+			var word_id_y = this.WORDS_TO_MATCH_TRIMMED[ y ].id;
+
+			var index_of_word = column_string.indexOf( word_y );
 			if ( -1 !== index_of_word ) {
+				var untrimmed_index_y = this.find_obj_in_arr( 
+					this.WORDS_TO_MATCH,
+					'id',
+					word_id_y
+				);
+				var untrimmed_word_y = this.WORDS_TO_MATCH[ untrimmed_index_y ].word;
+
 				console.log(
 					'Vertical match for "' +
-					this.WORDS_TO_MATCH[ y ] +
+					untrimmed_word_y +
 					'" on row ' +
 					( index_of_word + 1 ) +
 					' starting at letter #' +
@@ -784,23 +890,33 @@ WordSearch.prototype.search_column = function () {
 				this.found_word(
 					index_of_word,
 					i,
-					this.WORDS_TO_MATCH_TRIMMED[ y ].length,
+					untrimmed_word_y.length,
 					'column',
 					'#EEEEEE'
 				);
-				this.remove_word_from_list( y );
+				this.remove_word_from_list( word_id_y );
 				y--;
 			}
 		}
 
 		// search for backwards words
 		for ( var z = 0; z < this.WORDS_TO_MATCH_TRIMMED.length; z++ ) {
-			var word_reversed = this.WORDS_TO_MATCH_TRIMMED[ z ].split( '' ).reverse().join( '' );
+			var word_z = this.WORDS_TO_MATCH_TRIMMED[ z ].word;
+			var word_id_z = this.WORDS_TO_MATCH_TRIMMED[ z ].id;
+
+			var word_reversed = word_z.split( '' ).reverse().join( '' );
 			var index_of_word_reversed = column_string.indexOf( word_reversed );
 			if ( -1 !== index_of_word_reversed ) {
+				var untrimmed_index_z = this.find_obj_in_arr( 
+					this.WORDS_TO_MATCH,
+					'id',
+					word_id_z
+				);
+				var untrimmed_word_z = this.WORDS_TO_MATCH[ untrimmed_index_z ].word;
+
 				console.log(
 					'Vertical match (reversed) for "' +
-					this.WORDS_TO_MATCH[ z ] +
+					untrimmed_word_z +
 					'" on row ' +
 					( index_of_word_reversed + 1 ) +
 					' ending at letter #' +
@@ -809,11 +925,11 @@ WordSearch.prototype.search_column = function () {
 				this.found_word(
 					index_of_word_reversed,
 					i,
-					this.WORDS_TO_MATCH_TRIMMED[ z ].length,
+					untrimmed_word_z.length,
 					'column',
 					'#EEEEEE'
 				);
-				this.remove_word_from_list( z );
+				this.remove_word_from_list( word_id_z );
 				z--;
 			}
 		}
@@ -877,13 +993,23 @@ WordSearch.prototype.search_diagonal = function () {
 
 				// check if the word exists in the diagonal down and to the right, forwards
 				for ( var z = 0; z < this.WORDS_TO_MATCH_TRIMMED.length; z++ ) {
+					var word_z = this.WORDS_TO_MATCH_TRIMMED[ z ].word;
+					var word_id_z = this.WORDS_TO_MATCH_TRIMMED[ z ].id;
+					
 					var index_of_right_word = diagonal_right_string.indexOf(
-						this.WORDS_TO_MATCH_TRIMMED[ z ]
+						word_z
 					);
 					if ( -1 !== index_of_right_word ) {
+						var untrimmed_index_z = this.find_obj_in_arr( 
+							this.WORDS_TO_MATCH,
+							'id',
+							word_id_z
+						);
+						var untrimmed_word_z = this.WORDS_TO_MATCH[ untrimmed_index_z ].word;
+
 						console.log(
 							'Diagonal match (down and right) for "' +
-							this.WORDS_TO_MATCH[ z ] +
+							untrimmed_word_z +
 							'" on row ' +
 							( i + 1 + index_of_right_word ) +
 							' starting at letter #' +
@@ -892,18 +1018,21 @@ WordSearch.prototype.search_diagonal = function () {
 						this.found_word(
 							i + index_of_right_word,
 							x + index_of_right_word,
-							this.WORDS_TO_MATCH_TRIMMED[ z ].length,
+							untrimmed_word_z.length,
 							'diagonal-right',
 							'#DB2406'
 						);
-						this.remove_word_from_list( z );
+						this.remove_word_from_list( word_id_z );
 						z--;
 					}
 				}
 
 				// check for backwards words
 				for ( var d = 0; d < this.WORDS_TO_MATCH_TRIMMED.length; d++ ) {
-					var right_word_reversed = this.WORDS_TO_MATCH_TRIMMED[ d ].
+					var word_d = this.WORDS_TO_MATCH_TRIMMED[ d ].word;
+					var word_id_d = this.WORDS_TO_MATCH_TRIMMED[ d ].id;
+
+					var right_word_reversed = word_d.
 						split( '' ).
 						reverse().
 						join( '' );
@@ -911,9 +1040,16 @@ WordSearch.prototype.search_diagonal = function () {
 						right_word_reversed
 					);
 					if ( -1 !== index_of_right_word_reversed ) {
+						var untrimmed_index_d = this.find_obj_in_arr( 
+							this.WORDS_TO_MATCH,
+							'id',
+							word_id_d
+						);
+						var untrimmed_word_d = this.WORDS_TO_MATCH[ untrimmed_index_d ].word;
+
 						console.log(
 							'Diagonal match (reversed, down and right) for "' +
-							this.WORDS_TO_MATCH[ d ] +
+							untrimmed_word_d +
 							'" on row ' +
 							( i + 1 + index_of_right_word_reversed ) +
 							' ending at letter #' +
@@ -922,11 +1058,11 @@ WordSearch.prototype.search_diagonal = function () {
 						this.found_word(
 							i + index_of_right_word_reversed,
 							x + index_of_right_word_reversed,
-							this.WORDS_TO_MATCH_TRIMMED[ d ].length,
+							untrimmed_word_d.length,
 							'diagonal-right',
 							'#DB2406'
 						);
-						this.remove_word_from_list( d );
+						this.remove_word_from_list( word_id_d );
 						d--;
 					}
 				}
@@ -952,13 +1088,23 @@ WordSearch.prototype.search_diagonal = function () {
 				
 				// check if the word exists in the diagonal down and to the left, backwards
 				for ( var w = 0; w < this.WORDS_TO_MATCH_TRIMMED.length; w++ ) {
+					var word_w = this.WORDS_TO_MATCH_TRIMMED[ w ].word;
+					var word_id_w = this.WORDS_TO_MATCH_TRIMMED[ w ].id;
+
 					var index_of_left_word = diagonal_left_string.indexOf(
-						this.WORDS_TO_MATCH_TRIMMED[ w ]
+						word_w
 					);
 					if ( -1 !== index_of_left_word ) {
+						var untrimmed_index_w = this.find_obj_in_arr( 
+							this.WORDS_TO_MATCH,
+							'id',
+							word_id_w
+						);
+						var untrimmed_word_w = this.WORDS_TO_MATCH[ untrimmed_index_w ].word;
+
 						console.log(
 							'Diagonal match (reversed, down and left) for "' +
-							this.WORDS_TO_MATCH[ w ] +
+							untrimmed_word_w +
 							'" on row ' +
 							( i + 1 + index_of_left_word ) +
 							' starting at letter #' +
@@ -967,18 +1113,21 @@ WordSearch.prototype.search_diagonal = function () {
 						this.found_word(
 							i + index_of_left_word,
 							x - index_of_left_word,
-							this.WORDS_TO_MATCH_TRIMMED[ w ].length,
+							untrimmed_word_w.length,
 							'diagonal-left',
 							'#DB2406'
 						);
-						this.remove_word_from_list( w );
+						this.remove_word_from_list( word_id_w );
 						w--;
 					}
 				}
 
 				// check for forwards words
 				for ( var v = 0; v < this.WORDS_TO_MATCH_TRIMMED.length; v++ ) {
-					var left_word_reversed = this.WORDS_TO_MATCH_TRIMMED[ v ].
+					var word_v = this.WORDS_TO_MATCH_TRIMMED[ v ].word;
+					var word_id_v = this.WORDS_TO_MATCH_TRIMMED[ v ].id;
+
+					var left_word_reversed = word_v.
 						split( '' ).
 						reverse().
 						join( '' );
@@ -986,9 +1135,16 @@ WordSearch.prototype.search_diagonal = function () {
 						left_word_reversed
 					);
 					if ( -1 !== index_of_left_word_reversed ) {
+						var untrimmed_index_v = this.find_obj_in_arr( 
+							this.WORDS_TO_MATCH,
+							'id',
+							word_id_v
+						);
+						var untrimmed_word_v = this.WORDS_TO_MATCH[ untrimmed_index_v ].word;
+
 						console.log(
 							'Diagonal match (down and left) for "' +
-							this.WORDS_TO_MATCH[ v ] +
+							untrimmed_word_v +
 							'" on row ' +
 							( i + 1 + index_of_left_word_reversed ) +
 							' starting at letter #' +
@@ -997,11 +1153,11 @@ WordSearch.prototype.search_diagonal = function () {
 						this.found_word(
 							i + index_of_left_word_reversed,
 							x - index_of_left_word_reversed,
-							this.WORDS_TO_MATCH_TRIMMED[ v ].length,
+							untrimmed_word_v.length,
 							'diagonal-left',
 							'#DB2406'
 						);
-						this.remove_word_from_list( v );
+						this.remove_word_from_list( word_id_v );
 						v--;
 					}
 				}
@@ -1048,7 +1204,7 @@ WordSearch.prototype.create_display = function () {
 	// set up list
 	list_html += '<ol>';
 	for ( var y = 0; y < this.WORDS_TO_MATCH.length; y++ ) {
-		list_html += '<li>' + this.WORDS_TO_MATCH[ y ] + '</li>';
+		list_html += '<li>' + this.WORDS_TO_MATCH[ y ].word + '</li>';
 	}
 	list_html += '</ol>';
 	jQuery( '#word_list_container' ).html( list_html );

@@ -6,4 +6,4 @@ This web app grabs a default word grid and word list from a file, and offers a f
 
 There are three types of matches: horizontal, vertical, and diagonal. Horizontal matches are indicated by a blue border on the bottom of the matched word. Vertical matches are indicated by a white border on the left and right of the matched word. Finally, diagonal matches are indicated by red text.
 
-*Please Note: The Word Search Solver will only accept custom inputs that contain letters (A-Z) and spaces. I have plans to add support for dashes and possibly apostrophes, at a later date.*
+*Please Note: The Word Search Solver will only accept custom inputs that contain letters (A-Z), spaces, dashes, and apostrophes (as of version [0.1.6](https://github.com/foresthoffman/word-search/releases/tag/0.1.6)!).*

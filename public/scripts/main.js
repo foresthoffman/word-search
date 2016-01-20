@@ -373,8 +373,11 @@ WordSearch.prototype.trim_inputs = function ( input_obj ) {
 	 * - Make the string uppercase
 	 */
 	var trimmed_word_grid = word_grid.trim().replace(
-		/[\'\"\-]+/g,
+		/([^\S\n]*[\'\"\-]+[^\S\n]*)+/g,
 		''
+	).replace(
+		/(\n){2,}/g,
+		'\n'
 	).replace(
 		/\s+(?=\n)/g,
 		''
@@ -402,7 +405,7 @@ WordSearch.prototype.trim_inputs = function ( input_obj ) {
 	 * - Make the string uppercase
 	 */
 	var trimmed_word_list = word_list.trim().replace(
-		/[\'\"\-]+/g,
+		/([^\S\n]*[\'\"\-]+[^\S\n]*)+/g,
 		''
 	).replace(
 		/(\n){2,}/g,

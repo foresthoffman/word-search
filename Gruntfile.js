@@ -30,6 +30,12 @@ module.exports = function( grunt ) {
 			},
 			test: {
 				files: 'test/**/*.test.js'
+			},
+			host: {
+				dir: '../foresthoffman.github.io/<%= pkg.name %>/'
+			},
+			source: {
+				dir: 'public/'
 			}
 		},
 		sass: {
@@ -82,22 +88,26 @@ module.exports = function( grunt ) {
 		},
 		exec: {
 			zip: {
-				cmd: function ( source, dest, version ) {
+				cmd: function () {
 					var pkg_name = grunt.template.process( '<%= pkg.name %>' );
+					var host_dir_path = grunt.template.process( '<%= paths.host.dir %>' );
+					var source_dir_path = grunt.template.process( '<%= paths.source.dir %>' );
+					var version = grunt.template.process( '<%= pkg.version %>' );
+					var dest = '../zips/' + pkg_name + '/' + pkg_name + '-' + version + '.zip';
 
-					if ( 'undefined' === typeof( source ) ) {
-						source = './public/';
-					}
+					var zip_command = 'zip -r --exclude=*.DS_Store* ' + dest + ' ' + source_dir_path;
 
-					if ( 'undefined' === typeof( version ) ) {
-						version = grunt.template.process( '<%= pkg.version %>' );
-					}
+					return zip_command;
+				}
+			},
+			copy: {
+				cmd: function () {
+					var host_dir_path = grunt.template.process( '<%= paths.host.dir %>' );
+					var source_dir_path = grunt.template.process( '<%= paths.source.dir %>' );
 
-					if ( 'undefined' === typeof( dest ) ) {
-						dest = '../zips/' + pkg_name + '/' + pkg_name + '-' + version + '.zip';
-					}
+					var copy_command = 'cp -r ' + source_dir_path + ' ' + host_dir_path;
 
-					return 'zip -r --exclude=*.DS_Store* ' + dest + ' ' + source;
+					return copy_command;
 				}
 			}
 		},
@@ -142,6 +152,7 @@ module.exports = function( grunt ) {
 
 	// building and deployment
 	grunt.registerTask( 'build', ['jshint', 'sass', 'mochaTest', 'concat', 'exec:zip'] );
+	grunt.registerTask( 'deploy', ['build', 'exec:copy'] );
 
 	// automated checks
 	grunt.registerTask( 'dev', 'concurrent:dev' );

@@ -574,50 +574,32 @@ WordSearch.prototype.error_handler = function ( error_array ) {
 					if ( 'row-length' === error_obj.error_type ) {
 						error_msg = 'There is an issue with the grid field! Make sure ' +
 							'that the grid rows are all the same length.';
-						jQuery( '#word_search_form label[for="word_grid"]' ).css(
-							'color',
-							'#DB2406'
-						);
+						jQuery( '#word_search_form label[for="word_grid"]' ).addClass( 'error' );
 					} else if ( 'empty' === error_obj.error_type ) {
 						error_msg = 'The grid field must be filled.';
-						jQuery( '#word_search_form label[for="word_grid"]' ).css(
-							'color',
-							'#DB2406'
-						);
+						jQuery( '#word_search_form label[for="word_grid"]' ).addClass( 'error' );
 					} else if ( 'non-alpha' === error_obj.error_type ) {
 						error_msg = 'The grid field may only contain ' +
 							'alphabetical characters, spaces, dashes, ' +
 							'apostrophes, and quotes.';
-						jQuery( '#word_search_form label[for="word_grid"]' ).css(
-							'color',
-							'#DB2406'
-						);
+						jQuery( '#word_search_form label[for="word_grid"]' ).addClass( 'error' );
 					}
 					break;
 				case 'list':
 					if ( 'empty' === error_obj.error_type ) {
 						error_msg = 'The list field must be filled.';
-						jQuery( '#word_search_form label[for="word_list"]' ).css(
-							'color',
-							'#DB2406'
-						);
+						jQuery( '#word_search_form label[for="word_list"]' ).addClass( 'error' );
 					} else if ( 'non-alpha' === error_obj.error_type ) {
 						error_msg = 'The list field may only contain ' +
 							'alphabetical characters, spaces, dashes, ' +
 							'apostrophes, and quotes.';
-						jQuery( '#word_search_form label[for="word_list"]' ).css(
-							'color',
-							'#DB2406'
-						);
+						jQuery( '#word_search_form label[for="word_list"]' ).addClass( 'error' );
 					}
 					break;
 				case 'file':
 					if ( 'invalid' === error_obj.error_type ) {
 						error_msg = 'That file does not exist! Please try again.';
-						jQuery( '#word_search_form label[for="file_upload"]' ).css(
-							'color',
-							'#DB2406'
-						);
+						jQuery( '#word_search_form label[for="file_upload"]' ).addClass( 'error' );
 					}
 					break;
 			}
@@ -631,8 +613,8 @@ WordSearch.prototype.error_handler = function ( error_array ) {
  * Function: found_word
  * 
  * Description: Receives data on the zero-indexed row and column location of the word that has 
- *		been matched. It also receives the type of the match and the coloring to be applied to
- *		the matched word. The word is then styled depending on the type of the match.
+ *		been matched. It also receives the type of the match. Each type of match assigns a
+ *		different CSS class.
  *
  * Input(s):
  * - row (int), zero-indexed y-axis location of the match.
@@ -644,7 +626,7 @@ WordSearch.prototype.error_handler = function ( error_array ) {
  * Returns: N/A
  *
  */
-WordSearch.prototype.found_word = function ( row, column, word_length, match_type, color ) {
+WordSearch.prototype.found_word = function ( row, column, word_length, match_type ) {
 	
 	// some styling to point out matched words
 	for ( var i = 0; i < word_length; i++ ) {
@@ -652,36 +634,22 @@ WordSearch.prototype.found_word = function ( row, column, word_length, match_typ
 			case 'row':
 				jQuery( '#word_table_container td' ).eq(
 					( column + i ) + this._GRID_ROW_LENGTH * row 
-				).css(
-					'border-bottom',
-					'solid 1px ' + color
-				);
+				).addClass( 'row_match' );
 				break;
 			case 'column':
 				jQuery( '#word_table_container td' ).eq(
 					column + this._GRID_ROW_LENGTH * ( row + i )
-				).css(
-					{
-						'border-left': 'solid 1px ' + color,
-						'border-right': 'solid 1px ' + color
-					}
-				);
+				).addClass( 'column_match' );
 				break;
 			case 'diagonal-right':
 				jQuery( '#word_table_container td' ).eq(
 					( column + i ) + this._GRID_ROW_LENGTH * ( row + i )
-				).css(
-					'color',
-					color
-				);
+				).addClass( 'diagonal-match' );
 				break;
 			case 'diagonal-left':
 				jQuery( '#word_table_container td' ).eq(
 					column + ( this._GRID_ROW_LENGTH * ( row + i ) - i )
-				).css(
-					'color',
-					color
-				);
+				).addClass( 'diagonal-match' );
 				break;
 			default:
 				return;
@@ -717,10 +685,7 @@ WordSearch.prototype.remove_word_from_list = function ( word_id ) {
 	// scratch the word out on the list
 	jQuery(
 		'#word_list_container li:contains(' + this.WORDS_TO_MATCH[ untrimmed_index ].word + ')'
-	).css(
-		'color',
-		'#777'
-	);
+	).addClass( 'found' );
 
 	// if we've already matched the word, we don't need to search for it again.
 	this.WORDS_TO_MATCH.splice( untrimmed_index, 1 );
@@ -1220,7 +1185,8 @@ WordSearch.prototype.create_display = function () {
 /**
  * Function: clear_alerts
  * 
- * Description: Clears the error notifications on screen and changes the color of all form labels.
+ * Description: Clears the error notifications on screen and removes the error CSS class
+ *		from all form labels.
  *
  * Input(s): N/A
  *
@@ -1230,7 +1196,7 @@ WordSearch.prototype.create_display = function () {
 WordSearch.prototype.clear_alerts = function () {
 	
 	// hide the errors
-	jQuery( '#word_search_form label' ).css( 'color', '#333' );
+	jQuery( '#word_search_form label' ).removeClass( 'error' );
 	jQuery( '#word_search_form #alert-area' ).hide();
 	jQuery( '#word_search_form #alert-list' ).html( '' );
 };

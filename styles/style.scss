@@ -2,7 +2,9 @@
 $font_list:		Verdana, Helvetica, Sans-serif;
 $dark_grey:		#333;
 $light_grey:	#777;
-$egg_white: 	#eee;
+$egg_white:		#eee;
+$dark_red:		#DB2406;
+$light_blue:	#54A9CC;
 
 @mixin square_width_and_height {
 	width: 20px;
@@ -26,7 +28,7 @@ body {
 
 // this gives the navbar brand a slight diving line
 .navbar-header {
-	border-right: 1px solid $egg_white;
+	border-right: solid 1px $egg_white;
 }
 
 //
@@ -50,6 +52,10 @@ body {
 	
 	ol {
 		padding-left: 30px;
+	}
+
+	.found {
+		color: $light_grey;
 	}
 }
 
@@ -76,6 +82,19 @@ body {
 		font-size: 0.5em;
 		color: white;
 	}
+
+	.row_match {
+		border-bottom: solid 1px $light_blue;
+	}
+
+	.column_match {
+		border-left: solid 1px $egg_white;
+		border-right: solid 1px $egg_white;
+	}
+
+	.diagonal-match {
+		color: $dark_red;
+	}
 }
 
 //
@@ -94,6 +113,10 @@ body {
 #word_search_form {
 	.alert {
 		display: none;
+	}
+
+	.error {
+		color: $dark_red;
 	}
 
 	.word_search_form_textarea {

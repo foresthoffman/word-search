@@ -365,7 +365,7 @@ WordSearch.prototype.trim_inputs = function ( input_obj ) {
 	var word_list = input_obj.word_list;
 
 	/*
-	 * - Remove quotations and dashes
+	 * - Remove dashes, apostrophes, quotes, and the space around those characters
 	 * - Remove extraneous spaces at the beginning and end of the input
 	 * - Remove the spaces after newlines to just one newline
 	 * - Remove the spaces before newlines
@@ -395,7 +395,7 @@ WordSearch.prototype.trim_inputs = function ( input_obj ) {
 	).toUpperCase();
 
 	/*
-	 * - Remove quotations and dashes
+	 * - Remove dashes, apostrophes, quotes, and the space around those characters
 	 * - Reduce groupings of two or more newline characters to one newline character
 	 * - Remove whitespace characters that precede newline characters
 	 * - Replace groups of one newline character followed by whitespace characters that precede
@@ -456,12 +456,14 @@ WordSearch.prototype.trim_inputs = function ( input_obj ) {
  *			'field_type': 'list',
  *			'error_type': 'empty'
  *		}
- *		# When the grid contains non-alphabetical or non-whitespace characters.
+ *		# When the grid contains any characters other than alphabetical letters, spaces, dashes,
+ *			apostrophes, and quotation marks.
  *		{
  *			'field_type': 'grid',
  *			'error_type': 'non-alpha'
  *		}
- *		# When the list contains non-alphabetical or non-whitespace characters.
+ *		# When the list contains any characters other than alphabetical letters, spaces, dashes,
+ *			apostrophes, and quotation marks.
  *		{
  *			'field_type': 'list',
  *			'error_type': 'non-alpha'
@@ -583,8 +585,9 @@ WordSearch.prototype.error_handler = function ( error_array ) {
 							'#DB2406'
 						);
 					} else if ( 'non-alpha' === error_obj.error_type ) {
-						error_msg = 'The grid field may only contain '+
-							'alphabetical characters and spaces.';
+						error_msg = 'The grid field may only contain ' +
+							'alphabetical characters, spaces, dashes, ' +
+							'apostrophes, and quotes.';
 						jQuery( '#word_search_form label[for="word_grid"]' ).css(
 							'color',
 							'#DB2406'
@@ -599,8 +602,9 @@ WordSearch.prototype.error_handler = function ( error_array ) {
 							'#DB2406'
 						);
 					} else if ( 'non-alpha' === error_obj.error_type ) {
-						error_msg = 'The list field may only contain '+
-							'alphabetical characters and spaces.';
+						error_msg = 'The list field may only contain ' +
+							'alphabetical characters, spaces, dashes, ' +
+							'apostrophes, and quotes.';
 						jQuery( '#word_search_form label[for="word_list"]' ).css(
 							'color',
 							'#DB2406'

@@ -215,6 +215,7 @@ WordSearch.prototype.reset_display = function ( raw_data, origin, self ) {
 	var input_obj = self.map_to_obj( raw_data, origin );
 
 	self.clear_alerts();
+
 	var errors_array = self.validate_data( input_obj, origin, self );
 
 	if ( 0 !== errors_array.length ) {
@@ -472,12 +473,16 @@ WordSearch.prototype.trim_inputs = function ( input_obj ) {
  */
 WordSearch.prototype.validate_data = function ( input_obj, origin, self ) {
 	var error_array = [];
+	var trimmed_data_obj = self.trim_inputs( input_obj );
+	var word_grid = trimmed_data_obj.word_grid;
+	var word_list = trimmed_data_obj.word_list;
+	var row_array = word_grid.split( "\n" );
 
-	if ( 'undefined' === typeof( input_obj ) ||
-			'undefined' === typeof( input_obj.word_grid ) ||
-			'undefined' === typeof( input_obj.word_list ) ||
-			'' === input_obj.word_grid ||
-			'' === input_obj.word_list ) {
+	if ( 'undefined' === typeof( trimmed_data_obj ) ||
+			'undefined' === typeof( word_grid ) ||
+			'undefined' === typeof( word_list ) ||
+			'' === word_grid ||
+			'' === word_list ) {
 		
 		if ( 'file' === origin ) {
 			error_array.push(
@@ -488,8 +493,8 @@ WordSearch.prototype.validate_data = function ( input_obj, origin, self ) {
 			);
 			return error_array;
 		} else if ( 'form' === origin ) {
-			if ( 'undefined' === typeof( input_obj.word_grid ) ||
-					'' === input_obj.word_grid ) {
+			if ( 'undefined' === typeof( word_grid ) ||
+					'' === word_grid ) {
 				error_array.push(
 					{ 
 						'field_type': 'grid',
@@ -498,8 +503,8 @@ WordSearch.prototype.validate_data = function ( input_obj, origin, self ) {
 				);
 			}
 
-			if ( 'undefined' === typeof( input_obj.word_list ) ||
-					'' === input_obj.word_list ) {
+			if ( 'undefined' === typeof( word_list ) ||
+					'' === word_list ) {
 				error_array.push(
 					{ 
 						'field_type': 'list',
@@ -509,11 +514,6 @@ WordSearch.prototype.validate_data = function ( input_obj, origin, self ) {
 			}
 		}
 	}
-
-	var trimmed_data_obj = self.trim_inputs( input_obj );
-	var word_grid = trimmed_data_obj.word_grid;
-	var word_list = trimmed_data_obj.word_list;
-	var row_array = word_grid.split( "\n" );
 
 	if ( word_grid.match( /[^a-zA-Z\s]/ ) ) {
 		error_array.push(

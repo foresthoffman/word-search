@@ -217,6 +217,10 @@ describe( 'WordSearch Class.', function () {
 				'origin': 'form'
 			},
 			{
+				'err': 'special-grid-empty-list-empty',
+				'origin': 'form'
+			},
+			{
 				'err': 'grid-alpha',
 				'origin': 'form'
 			},
@@ -364,6 +368,21 @@ describe( 'WordSearch Class.', function () {
 		});
 
 		it( 'should return grid-empty and list-empty errors', function () {
+			expect(
+				validate_data_spy.returned([
+					{
+						'field_type': 'grid',
+						'error_type': 'empty'
+					},
+					{
+						'field_type': 'list',
+						'error_type': 'empty'
+					}
+				])
+			).to.be.true;
+		});
+
+		it( 'should return grid-empty and list-empty errors ([\'\"\-] get stripped)', function () {
 			expect(
 				validate_data_spy.returned([
 					{

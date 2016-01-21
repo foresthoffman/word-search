@@ -626,14 +626,13 @@ WordSearch.prototype.error_handler = function ( error_array ) {
  */
 WordSearch.prototype.highlight_match = function ( e ) {
 	var index_of_match = jQuery( e.currentTarget ).attr( 'data-match-index' );
-	var list_item = jQuery( e.currentTarget );
 	var letter_elem = jQuery( '#word_table_container .table_data' ).eq( index_of_match );
 	if ( ! jQuery( letter_elem ).hasClass( 'hover_match' ) ) {
 		jQuery( letter_elem ).addClass( 'hover_match' );
-		jQuery( list_item ).addClass( 'highlight_toggle' );
+		jQuery( e.currentTarget ).children().addClass( 'highlight_toggle' );
 	} else {
 		jQuery( letter_elem ).removeClass( 'hover_match' );
-		jQuery( list_item ).removeClass( 'highlight_toggle' );
+		jQuery( 'li.found[data-match-index="' + index_of_match + '"]' ).children().removeClass( 'highlight_toggle' );
 	}
 };
 
@@ -1229,7 +1228,7 @@ WordSearch.prototype.create_display = function () {
 	// set up list
 	list_html += '<ol>';
 	for ( var y = 0; y < this.WORDS_TO_MATCH.length; y++ ) {
-		list_html += '<li>' + this.WORDS_TO_MATCH[ y ].word + '</li>';
+		list_html += '<li><span>' + this.WORDS_TO_MATCH[ y ].word + '</span></li>';
 	}
 	list_html += '</ol>';
 	jQuery( '#word_list_container' ).html( list_html );

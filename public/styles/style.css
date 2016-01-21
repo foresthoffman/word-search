@@ -13,8 +13,27 @@ body {
   overflow: hidden;
 }
 
-.navbar-header {
-  border-right: solid 1px #eeeeee;
+.navbar {
+  background-color: #333333;
+  border-radius: 4px !important;
+}
+.navbar .navbar-brand {
+  color: #eeeeee !important;
+}
+.navbar .navbar-brand:hover {
+  color: #888888 !important;
+}
+.navbar .nav li > a {
+  color: #eeeeee !important;
+}
+.navbar .nav li > a:hover {
+  color: #888888 !important;
+}
+.navbar .navbar-collapse, .navbar .navbar-toggle {
+  border-color: #222222 !important;
+}
+.navbar .navbar-toggle {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 #main_content, .content_container {
@@ -34,11 +53,14 @@ body {
 #word_list_container ol {
   padding-left: 30px;
 }
-#word_list_container .found {
+#word_list_container li {
+  color: #222222;
+}
+#word_list_container li.found {
   color: #777777;
 }
-#word_list_container .highlight_toggle {
-  color: #333333;
+#word_list_container li > span.highlight_toggle {
+  color: #54a9cc;
 }
 
 #word_table_container {
@@ -104,6 +126,10 @@ body {
 }
 
 @media (min-width: 768px) {
+  .navbar-header {
+    border-right: 1px solid #222222;
+  }
+
   #word_search_form {
     width: 100%;
   }

@@ -1,8 +1,10 @@
 // Variables
 $font_list:		Verdana, Helvetica, Sans-serif;
-$dark_grey:		#333;
+$egg_white:		#EEE;
+$lighter_grey:	#888;
 $light_grey:	#777;
-$egg_white:		#eee;
+$dark_grey:		#333;
+$darker_grey:	#222;
 $dark_red:		#DB2406;
 $light_blue:	#54A9CC;
 
@@ -26,9 +28,34 @@ body {
 	overflow: hidden;
 }
 
-// this gives the navbar brand a slight diving line
-.navbar-header {
-	border-right: solid 1px $egg_white;
+.navbar {
+	background-color: $dark_grey;
+	border-radius: 4px !important;
+
+	.navbar-brand {
+		color: $egg_white !important;
+
+		&:hover {
+			color: $lighter_grey !important;
+		}
+	}
+
+	.nav li > a {
+	 	color: $egg_white !important;
+	 	
+	 	&:hover {
+			color: $lighter_grey !important;
+		}
+	}
+
+	.navbar-collapse {
+		border-color: $darker_grey !important;
+	}
+
+	.navbar-toggle {
+		@extend .navbar-collapse;
+		box-shadow: inset 0 1px 0 rgba(255, 255, 255, .1);
+	}
 }
 
 //
@@ -54,12 +81,16 @@ body {
 		padding-left: 30px;
 	}
 
-	.found {
-		color: $light_grey;
-	}
+	li {
+		color: $darker_grey;
 
-	.highlight_toggle {
-		color: $dark_grey;
+		&.found {
+			color: $light_grey;
+		}
+
+		& > span.highlight_toggle {
+			color: $light_blue;
+		}
 	}
 }
 
@@ -150,6 +181,10 @@ body {
 		width: 75%;
 		margin-left: auto;
 		margin-right: auto;
+	}
+
+	.navbar-header {
+		border-right: 1px solid $darker_grey;
 	}
 
 	#word_search_form {

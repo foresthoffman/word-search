@@ -21,7 +21,7 @@ body {
 	padding: 20px 0 20px 0;
 }
 
-#body-container {
+#body_container {
 	max-width: 900px;
 	overflow: hidden;
 }
@@ -56,6 +56,10 @@ body {
 
 	.found {
 		color: $light_grey;
+	}
+
+	.highlight_toggle {
+		color: $dark_grey;
 	}
 }
 
@@ -92,8 +96,12 @@ body {
 		border-right: solid 1px $egg_white;
 	}
 
-	.diagonal-match {
+	.diagonal_match {
 		color: $dark_red;
+	}
+
+	.hover_match {
+		background-color: $egg_white;
 	}
 }
 

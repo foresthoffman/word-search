@@ -225,6 +225,9 @@ WordSearch.prototype.reset_display = function ( raw_data, origin, self ) {
 		self.prepare_search( trimmed_data_obj, self );
 		self.create_display();
 		self.search_for_words();
+
+		jQuery( 'li.found' ).on( 'click', self.highlight_match );
+		
 		self.jump_to_id( 'top' );
 	}
 };
@@ -610,6 +613,31 @@ WordSearch.prototype.error_handler = function ( error_array ) {
 };
 
 /**
+ * Function: highlight_match
+ * 
+ * Description: Highlights the letter on the word grid at the index attached to a found word
+ *		item in the word list.
+ *
+ * Input(s):
+ * - e (jQuery Object), the click event object.
+ *
+ * Returns: N/A
+ *
+ */
+WordSearch.prototype.highlight_match = function ( e ) {
+	var index_of_match = jQuery( e.currentTarget ).attr( 'data-match-index' );
+	var list_item = jQuery( e.currentTarget );
+	var letter_elem = jQuery( '#word_table_container .table_data' ).eq( index_of_match );
+	if ( ! jQuery( letter_elem ).hasClass( 'hover_match' ) ) {
+		jQuery( letter_elem ).addClass( 'hover_match' );
+		jQuery( list_item ).addClass( 'highlight_toggle' );
+	} else {
+		jQuery( letter_elem ).removeClass( 'hover_match' );
+		jQuery( list_item ).removeClass( 'highlight_toggle' );
+	}
+};
+
+/**
  * Function: found_word
  * 
  * Description: Receives data on the zero-indexed row and column location of the word that has 
@@ -644,12 +672,12 @@ WordSearch.prototype.found_word = function ( row, column, word_length, match_typ
 			case 'diagonal-right':
 				jQuery( '#word_table_container td' ).eq(
 					( column + i ) + this._GRID_ROW_LENGTH * ( row + i )
-				).addClass( 'diagonal-match' );
+				).addClass( 'diagonal_match' );
 				break;
 			case 'diagonal-left':
 				jQuery( '#word_table_container td' ).eq(
 					column + ( this._GRID_ROW_LENGTH * ( row + i ) - i )
-				).addClass( 'diagonal-match' );
+				).addClass( 'diagonal_match' );
 				break;
 			default:
 				return;
@@ -664,13 +692,17 @@ WordSearch.prototype.found_word = function ( row, column, word_length, match_typ
  *		styles the displayed word list to reflect that the word has been found.
  *
  * Input(s):
- * - index (int), zero-indexed index of the word to be removed form the word lists.
+ * - word_id (int), the unique id of the word to be removed from the trimmed and untrimmed word
+ *		word lists.
+ * - row (int), the zero-indexed number representing the row that the word was found on.
+ * - col (int), the zero-indexed number representing the column that the word was found on.
  *
  * Returns: N/A
  *
  */
-WordSearch.prototype.remove_word_from_list = function ( word_id ) {
+WordSearch.prototype.remove_word_from_list = function ( word_id, row, col ) {
 	
+	var match_index = col + this._GRID_ROW_LENGTH * row;
 	var untrimmed_index = this.find_obj_in_arr(
 		this.WORDS_TO_MATCH,
 		'id',
@@ -683,9 +715,14 @@ WordSearch.prototype.remove_word_from_list = function ( word_id ) {
 	);
 
 	// scratch the word out on the list
-	jQuery(
+	var list_item = jQuery(
 		'#word_list_container li:contains(' + this.WORDS_TO_MATCH[ untrimmed_index ].word + ')'
-	).addClass( 'found' );
+	).addClass(
+		'found'
+	).attr( 
+		'data-match-index',
+		match_index
+	);
 
 	// if we've already matched the word, we don't need to search for it again.
 	this.WORDS_TO_MATCH.splice( untrimmed_index, 1 );
@@ -769,7 +806,7 @@ WordSearch.prototype.search_row = function () {
 					'row',
 					'#54A9CC'
 				);
-				this.remove_word_from_list( word_id_x );
+				this.remove_word_from_list( word_id_x, i, index_of_word );
 				x--;
 			}
 		}
@@ -804,7 +841,7 @@ WordSearch.prototype.search_row = function () {
 					'row',
 					'#54A9CC'
 				);
-				this.remove_word_from_list( word_id_y );
+				this.remove_word_from_list( word_id_y, i, index_of_word_reversed );
 				y--;
 			}
 		}
@@ -866,7 +903,7 @@ WordSearch.prototype.search_column = function () {
 					'column',
 					'#EEEEEE'
 				);
-				this.remove_word_from_list( word_id_y );
+				this.remove_word_from_list( word_id_y, index_of_word, i );
 				y--;
 			}
 		}
@@ -901,7 +938,7 @@ WordSearch.prototype.search_column = function () {
 					'column',
 					'#EEEEEE'
 				);
-				this.remove_word_from_list( word_id_z );
+				this.remove_word_from_list( word_id_z, index_of_word_reversed, i );
 				z--;
 			}
 		}
@@ -994,7 +1031,11 @@ WordSearch.prototype.search_diagonal = function () {
 							'diagonal-right',
 							'#DB2406'
 						);
-						this.remove_word_from_list( word_id_z );
+						this.remove_word_from_list(
+							word_id_z,
+							i + index_of_right_word,
+							x + index_of_right_word
+						);
 						z--;
 					}
 				}
@@ -1034,7 +1075,11 @@ WordSearch.prototype.search_diagonal = function () {
 							'diagonal-right',
 							'#DB2406'
 						);
-						this.remove_word_from_list( word_id_d );
+						this.remove_word_from_list(
+							word_id_d,
+							i + index_of_right_word_reversed,
+							x + index_of_right_word_reversed
+						);
 						d--;
 					}
 				}
@@ -1089,7 +1134,11 @@ WordSearch.prototype.search_diagonal = function () {
 							'diagonal-left',
 							'#DB2406'
 						);
-						this.remove_word_from_list( word_id_w );
+						this.remove_word_from_list(
+							word_id_w,
+							i + index_of_left_word,
+							x - index_of_left_word
+						);
 						w--;
 					}
 				}
@@ -1129,7 +1178,11 @@ WordSearch.prototype.search_diagonal = function () {
 							'diagonal-left',
 							'#DB2406'
 						);
-						this.remove_word_from_list( word_id_v );
+						this.remove_word_from_list(
+							word_id_v,
+							i + index_of_left_word_reversed,
+							x - index_of_left_word_reversed
+						);
 						v--;
 					}
 				}
@@ -1155,7 +1208,7 @@ WordSearch.prototype.create_display = function () {
 	table_html += '<table><tr><th class="table_header"></th>';
 
 	// set up horizontal headers
-	for ( var i = 1; i <= this.WORD_GRID_ROWS[0].length; i++ ) {
+	for ( var i = 1; i <= this._GRID_ROW_LENGTH; i++ ) {
 		table_html += '<th class="table_header">' + i + '</th>';
 	}
 	table_html += '</tr>';
@@ -1165,7 +1218,7 @@ WordSearch.prototype.create_display = function () {
 		table_html += '<tr><th class="table_header">' + ( parseInt( x ) + 1 ) + '</th>';
 		
 		// set up the rest of the row
-		jQuery.each( row, function ( x, letter ) {
+		jQuery.each( row, function ( y, letter ) {
 			table_html += '<td class="table_data">' + letter + '</td>';
 		});
 		table_html += '</tr>';

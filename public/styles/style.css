@@ -8,7 +8,7 @@ body {
   padding: 20px 0 20px 0;
 }
 
-#body-container {
+#body_container {
   max-width: 900px;
   overflow: hidden;
 }
@@ -36,6 +36,9 @@ body {
 }
 #word_list_container .found {
   color: #777777;
+}
+#word_list_container .highlight_toggle {
+  color: #333333;
 }
 
 #word_table_container {
@@ -67,8 +70,11 @@ body {
   border-left: solid 1px #eeeeee;
   border-right: solid 1px #eeeeee;
 }
-#word_table_container .diagonal-match {
+#word_table_container .diagonal_match {
   color: #db2406;
+}
+#word_table_container .hover_match {
+  background-color: #eeeeee;
 }
 
 #footer {

@@ -225,6 +225,9 @@ WordSearch.prototype.reset_display = function ( raw_data, origin, self ) {
 		self.prepare_search( trimmed_data_obj, self );
 		self.create_display();
 		self.search_for_words();
+
+		jQuery( 'li.found' ).on( 'click', self.highlight_match );
+		
 		self.jump_to_id( 'top' );
 	}
 };
@@ -365,7 +368,7 @@ WordSearch.prototype.trim_inputs = function ( input_obj ) {
 	var word_list = input_obj.word_list;
 
 	/*
-	 * - Remove quotations and dashes
+	 * - Remove dashes, apostrophes, quotes, and the space around those characters
 	 * - Remove extraneous spaces at the beginning and end of the input
 	 * - Remove the spaces after newlines to just one newline
 	 * - Remove the spaces before newlines
@@ -395,7 +398,7 @@ WordSearch.prototype.trim_inputs = function ( input_obj ) {
 	).toUpperCase();
 
 	/*
-	 * - Remove quotations and dashes
+	 * - Remove dashes, apostrophes, quotes, and the space around those characters
 	 * - Reduce groupings of two or more newline characters to one newline character
 	 * - Remove whitespace characters that precede newline characters
 	 * - Replace groups of one newline character followed by whitespace characters that precede
@@ -456,12 +459,14 @@ WordSearch.prototype.trim_inputs = function ( input_obj ) {
  *			'field_type': 'list',
  *			'error_type': 'empty'
  *		}
- *		# When the grid contains non-alphabetical or non-whitespace characters.
+ *		# When the grid contains any characters other than alphabetical letters, spaces, dashes,
+ *			apostrophes, and quotation marks.
  *		{
  *			'field_type': 'grid',
  *			'error_type': 'non-alpha'
  *		}
- *		# When the list contains non-alphabetical or non-whitespace characters.
+ *		# When the list contains any characters other than alphabetical letters, spaces, dashes,
+ *			apostrophes, and quotation marks.
  *		{
  *			'field_type': 'list',
  *			'error_type': 'non-alpha'
@@ -572,48 +577,32 @@ WordSearch.prototype.error_handler = function ( error_array ) {
 					if ( 'row-length' === error_obj.error_type ) {
 						error_msg = 'There is an issue with the grid field! Make sure ' +
 							'that the grid rows are all the same length.';
-						jQuery( '#word_search_form label[for="word_grid"]' ).css(
-							'color',
-							'#DB2406'
-						);
+						jQuery( '#word_search_form label[for="word_grid"]' ).addClass( 'error' );
 					} else if ( 'empty' === error_obj.error_type ) {
 						error_msg = 'The grid field must be filled.';
-						jQuery( '#word_search_form label[for="word_grid"]' ).css(
-							'color',
-							'#DB2406'
-						);
+						jQuery( '#word_search_form label[for="word_grid"]' ).addClass( 'error' );
 					} else if ( 'non-alpha' === error_obj.error_type ) {
-						error_msg = 'The grid field may only contain '+
-							'alphabetical characters and spaces.';
-						jQuery( '#word_search_form label[for="word_grid"]' ).css(
-							'color',
-							'#DB2406'
-						);
+						error_msg = 'The grid field may only contain ' +
+							'alphabetical characters, spaces, dashes, ' +
+							'apostrophes, and quotes.';
+						jQuery( '#word_search_form label[for="word_grid"]' ).addClass( 'error' );
 					}
 					break;
 				case 'list':
 					if ( 'empty' === error_obj.error_type ) {
 						error_msg = 'The list field must be filled.';
-						jQuery( '#word_search_form label[for="word_list"]' ).css(
-							'color',
-							'#DB2406'
-						);
+						jQuery( '#word_search_form label[for="word_list"]' ).addClass( 'error' );
 					} else if ( 'non-alpha' === error_obj.error_type ) {
-						error_msg = 'The list field may only contain '+
-							'alphabetical characters and spaces.';
-						jQuery( '#word_search_form label[for="word_list"]' ).css(
-							'color',
-							'#DB2406'
-						);
+						error_msg = 'The list field may only contain ' +
+							'alphabetical characters, spaces, dashes, ' +
+							'apostrophes, and quotes.';
+						jQuery( '#word_search_form label[for="word_list"]' ).addClass( 'error' );
 					}
 					break;
 				case 'file':
 					if ( 'invalid' === error_obj.error_type ) {
 						error_msg = 'That file does not exist! Please try again.';
-						jQuery( '#word_search_form label[for="file_upload"]' ).css(
-							'color',
-							'#DB2406'
-						);
+						jQuery( '#word_search_form label[for="file_upload"]' ).addClass( 'error' );
 					}
 					break;
 			}
@@ -624,11 +613,35 @@ WordSearch.prototype.error_handler = function ( error_array ) {
 };
 
 /**
+ * Function: highlight_match
+ * 
+ * Description: Highlights the letter on the word grid at the index attached to a found word
+ *		item in the word list.
+ *
+ * Input(s):
+ * - e (jQuery Object), the click event object.
+ *
+ * Returns: N/A
+ *
+ */
+WordSearch.prototype.highlight_match = function ( e ) {
+	var index_of_match = jQuery( e.currentTarget ).attr( 'data-match-index' );
+	var letter_elem = jQuery( '#word_table_container .table_data' ).eq( index_of_match );
+	if ( ! jQuery( letter_elem ).hasClass( 'hover_match' ) ) {
+		jQuery( letter_elem ).addClass( 'hover_match' );
+		jQuery( e.currentTarget ).children().addClass( 'highlight_toggle' );
+	} else {
+		jQuery( letter_elem ).removeClass( 'hover_match' );
+		jQuery( 'li.found[data-match-index="' + index_of_match + '"]' ).children().removeClass( 'highlight_toggle' );
+	}
+};
+
+/**
  * Function: found_word
  * 
  * Description: Receives data on the zero-indexed row and column location of the word that has 
- *		been matched. It also receives the type of the match and the coloring to be applied to
- *		the matched word. The word is then styled depending on the type of the match.
+ *		been matched. It also receives the type of the match. Each type of match assigns a
+ *		different CSS class.
  *
  * Input(s):
  * - row (int), zero-indexed y-axis location of the match.
@@ -640,7 +653,7 @@ WordSearch.prototype.error_handler = function ( error_array ) {
  * Returns: N/A
  *
  */
-WordSearch.prototype.found_word = function ( row, column, word_length, match_type, color ) {
+WordSearch.prototype.found_word = function ( row, column, word_length, match_type ) {
 	
 	// some styling to point out matched words
 	for ( var i = 0; i < word_length; i++ ) {
@@ -648,36 +661,22 @@ WordSearch.prototype.found_word = function ( row, column, word_length, match_typ
 			case 'row':
 				jQuery( '#word_table_container td' ).eq(
 					( column + i ) + this._GRID_ROW_LENGTH * row 
-				).css(
-					'border-bottom',
-					'solid 1px ' + color
-				);
+				).addClass( 'row_match' );
 				break;
 			case 'column':
 				jQuery( '#word_table_container td' ).eq(
 					column + this._GRID_ROW_LENGTH * ( row + i )
-				).css(
-					{
-						'border-left': 'solid 1px ' + color,
-						'border-right': 'solid 1px ' + color
-					}
-				);
+				).addClass( 'column_match' );
 				break;
 			case 'diagonal-right':
 				jQuery( '#word_table_container td' ).eq(
 					( column + i ) + this._GRID_ROW_LENGTH * ( row + i )
-				).css(
-					'color',
-					color
-				);
+				).addClass( 'diagonal_match' );
 				break;
 			case 'diagonal-left':
 				jQuery( '#word_table_container td' ).eq(
 					column + ( this._GRID_ROW_LENGTH * ( row + i ) - i )
-				).css(
-					'color',
-					color
-				);
+				).addClass( 'diagonal_match' );
 				break;
 			default:
 				return;
@@ -692,13 +691,17 @@ WordSearch.prototype.found_word = function ( row, column, word_length, match_typ
  *		styles the displayed word list to reflect that the word has been found.
  *
  * Input(s):
- * - index (int), zero-indexed index of the word to be removed form the word lists.
+ * - word_id (int), the unique id of the word to be removed from the trimmed and untrimmed word
+ *		word lists.
+ * - row (int), the zero-indexed number representing the row that the word was found on.
+ * - col (int), the zero-indexed number representing the column that the word was found on.
  *
  * Returns: N/A
  *
  */
-WordSearch.prototype.remove_word_from_list = function ( word_id ) {
+WordSearch.prototype.remove_word_from_list = function ( word_id, row, col ) {
 	
+	var match_index = col + this._GRID_ROW_LENGTH * row;
 	var untrimmed_index = this.find_obj_in_arr(
 		this.WORDS_TO_MATCH,
 		'id',
@@ -711,11 +714,13 @@ WordSearch.prototype.remove_word_from_list = function ( word_id ) {
 	);
 
 	// scratch the word out on the list
-	jQuery(
+	var list_item = jQuery(
 		'#word_list_container li:contains(' + this.WORDS_TO_MATCH[ untrimmed_index ].word + ')'
-	).css(
-		'color',
-		'#777'
+	).addClass(
+		'found'
+	).attr( 
+		'data-match-index',
+		match_index
 	);
 
 	// if we've already matched the word, we don't need to search for it again.
@@ -800,7 +805,7 @@ WordSearch.prototype.search_row = function () {
 					'row',
 					'#54A9CC'
 				);
-				this.remove_word_from_list( word_id_x );
+				this.remove_word_from_list( word_id_x, i, index_of_word );
 				x--;
 			}
 		}
@@ -835,7 +840,7 @@ WordSearch.prototype.search_row = function () {
 					'row',
 					'#54A9CC'
 				);
-				this.remove_word_from_list( word_id_y );
+				this.remove_word_from_list( word_id_y, i, index_of_word_reversed );
 				y--;
 			}
 		}
@@ -897,7 +902,7 @@ WordSearch.prototype.search_column = function () {
 					'column',
 					'#EEEEEE'
 				);
-				this.remove_word_from_list( word_id_y );
+				this.remove_word_from_list( word_id_y, index_of_word, i );
 				y--;
 			}
 		}
@@ -932,7 +937,7 @@ WordSearch.prototype.search_column = function () {
 					'column',
 					'#EEEEEE'
 				);
-				this.remove_word_from_list( word_id_z );
+				this.remove_word_from_list( word_id_z, index_of_word_reversed, i );
 				z--;
 			}
 		}
@@ -1025,7 +1030,11 @@ WordSearch.prototype.search_diagonal = function () {
 							'diagonal-right',
 							'#DB2406'
 						);
-						this.remove_word_from_list( word_id_z );
+						this.remove_word_from_list(
+							word_id_z,
+							i + index_of_right_word,
+							x + index_of_right_word
+						);
 						z--;
 					}
 				}
@@ -1065,7 +1074,11 @@ WordSearch.prototype.search_diagonal = function () {
 							'diagonal-right',
 							'#DB2406'
 						);
-						this.remove_word_from_list( word_id_d );
+						this.remove_word_from_list(
+							word_id_d,
+							i + index_of_right_word_reversed,
+							x + index_of_right_word_reversed
+						);
 						d--;
 					}
 				}
@@ -1120,7 +1133,11 @@ WordSearch.prototype.search_diagonal = function () {
 							'diagonal-left',
 							'#DB2406'
 						);
-						this.remove_word_from_list( word_id_w );
+						this.remove_word_from_list(
+							word_id_w,
+							i + index_of_left_word,
+							x - index_of_left_word
+						);
 						w--;
 					}
 				}
@@ -1160,7 +1177,11 @@ WordSearch.prototype.search_diagonal = function () {
 							'diagonal-left',
 							'#DB2406'
 						);
-						this.remove_word_from_list( word_id_v );
+						this.remove_word_from_list(
+							word_id_v,
+							i + index_of_left_word_reversed,
+							x - index_of_left_word_reversed
+						);
 						v--;
 					}
 				}
@@ -1186,7 +1207,7 @@ WordSearch.prototype.create_display = function () {
 	table_html += '<table><tr><th class="table_header"></th>';
 
 	// set up horizontal headers
-	for ( var i = 1; i <= this.WORD_GRID_ROWS[0].length; i++ ) {
+	for ( var i = 1; i <= this._GRID_ROW_LENGTH; i++ ) {
 		table_html += '<th class="table_header">' + i + '</th>';
 	}
 	table_html += '</tr>';
@@ -1196,7 +1217,7 @@ WordSearch.prototype.create_display = function () {
 		table_html += '<tr><th class="table_header">' + ( parseInt( x ) + 1 ) + '</th>';
 		
 		// set up the rest of the row
-		jQuery.each( row, function ( x, letter ) {
+		jQuery.each( row, function ( y, letter ) {
 			table_html += '<td class="table_data">' + letter + '</td>';
 		});
 		table_html += '</tr>';
@@ -1207,7 +1228,7 @@ WordSearch.prototype.create_display = function () {
 	// set up list
 	list_html += '<ol>';
 	for ( var y = 0; y < this.WORDS_TO_MATCH.length; y++ ) {
-		list_html += '<li>' + this.WORDS_TO_MATCH[ y ].word + '</li>';
+		list_html += '<li><span>' + this.WORDS_TO_MATCH[ y ].word + '</span></li>';
 	}
 	list_html += '</ol>';
 	jQuery( '#word_list_container' ).html( list_html );
@@ -1216,7 +1237,8 @@ WordSearch.prototype.create_display = function () {
 /**
  * Function: clear_alerts
  * 
- * Description: Clears the error notifications on screen and changes the color of all form labels.
+ * Description: Clears the error notifications on screen and removes the error CSS class
+ *		from all form labels.
  *
  * Input(s): N/A
  *
@@ -1226,7 +1248,7 @@ WordSearch.prototype.create_display = function () {
 WordSearch.prototype.clear_alerts = function () {
 	
 	// hide the errors
-	jQuery( '#word_search_form label' ).css( 'color', '#333' );
+	jQuery( '#word_search_form label' ).removeClass( 'error' );
 	jQuery( '#word_search_form #alert-area' ).hide();
 	jQuery( '#word_search_form #alert-list' ).html( '' );
 };

@@ -71,6 +71,12 @@ WordSearch.prototype.init = function ( default_file_path ) {
 	// an array of words to search for
 	this.WORDS_TO_MATCH = [];
 	this.WORDS_TO_MATCH_TRIMMED = [];
+
+	// feature sniffing for drag and drop support
+	this._IS_ADVANCED_UPLOAD = this.draggable_exists();
+
+	// a File object representing the file uploaded via the form
+	this.UPLOADED_FILE_OBJ = null;
 	
 	// global constants including lengths and counts
 	this._LENGTH_OF_LONGEST_WORD = 0;
@@ -83,6 +89,7 @@ WordSearch.prototype.init = function ( default_file_path ) {
 		default_file_path :
 		'data/word-search.txt'
 	);
+
 	var self = this;
 	this.loaded( self );
 };
@@ -101,6 +108,59 @@ WordSearch.prototype.init = function ( default_file_path ) {
  */
 WordSearch.prototype.loaded = function ( self ) {
 	self.get_file_data( self._DEFAULT_FILE_PATH, self.reset_display, self );
+
+	if ( self._IS_ADVANCED_UPLOAD ) {
+
+		var file_upload_box = jQuery( '#word_search_form .file_upload_box' );
+		file_upload_box.addClass( 'has_advanced_upload' );
+
+		var dropped_file = false;
+
+		file_upload_box.on(
+			'drag dragstart dragend dragover dragenter dragleave drop',
+			function ( e ) {
+				e.preventDefault();
+				e.stopPropagation();
+			}
+		).on(
+			'dragover dragenter',
+			function () {
+				file_upload_box.addClass( 'is_dragover' );
+			}
+		).on(
+			'dragleave dragend drop',
+			function () {
+				file_upload_box.removeClass( 'is_dragover' );
+			}
+		).on(
+			'drop',
+			function ( e ) {
+				var files = e.originalEvent.dataTransfer.files;
+				self.update_form_file( files, self );
+			}
+		);
+	}
+
+	// file upload field's "files" property was changed
+	jQuery( '#word_search_form_file_upload' ).on( 'change', function ( e ) {
+		var files = e.currentTarget.files;
+		self.update_form_file( files, self );
+	});
+
+	// file upload field label was clicked
+	jQuery( '.file_upload_input label[for="word_search_form_file_upload"]' ).click(
+		'click',
+		function ( e ) {
+			jQuery( '#word_search_form_file_upload' ).trigger( 'click' );
+		}
+	);
+
+	// form type change event listener
+	jQuery( '#word_search_form #form_method' ).on(
+		'change',
+		{ 'self': self },
+		self.change_form_display
+	);
 
 	// submit button event listener
 	jQuery( '#submit' ).on( 'click', { 'self': self }, self.get_form_data );
@@ -145,17 +205,40 @@ WordSearch.prototype.get_file_data = function ( url, callback, self ) {
 WordSearch.prototype.get_form_data = function ( e ) {
 	e.preventDefault();
 
+	// disable the button to prevent further submission, while loading
+	e.currentTarget.disabled = true;
+
 	var self = e.data.self;
-	
-	var word_grid_val = jQuery( '#word_search_form_textarea_grid' ).val();
-	var word_list_val = jQuery( '#word_search_form_textarea_list' ).val();
+	var form_type = jQuery( '#word_search_form #form_method' ).val();
 
-	var new_data = [
-		word_grid_val,
-		word_list_val
-	];
+	if ( 'upload' === form_type ) {
+		var the_file = self.UPLOADED_FILE_OBJ;
 
-	self.reset_display( new_data, 'form', self );
+		if ( null !== the_file ) {
+			var reader = new FileReader();
+			jQuery( reader ).on( 'loadend', function() {
+				self.reset_display( reader.result, 'file', self );
+			});
+			reader.readAsText( the_file );
+		} else {
+			// var error_array = [
+			// 	{
+			// 		'field_type': 'file',
+			// 		'error_type': 'null'
+			// 	}
+			// ];
+			// self.error_handler( error_array );
+		}
+	} else if ( 'manual' === form_type ) {
+		var word_grid_val = jQuery( '#word_search_form_textarea_grid' ).val();
+		var word_list_val = jQuery( '#word_search_form_textarea_list' ).val();
+
+		var new_data = [
+			word_grid_val,
+			word_list_val
+		];
+		self.reset_display( new_data, 'form', self );
+	}
 };
 
 /**
@@ -230,6 +313,8 @@ WordSearch.prototype.reset_display = function ( raw_data, origin, self ) {
 		
 		self.jump_to_id( 'top' );
 	}
+
+	jQuery( '#submit' ).prop( 'disabled', false );
 };
 
 /**
@@ -311,6 +396,8 @@ WordSearch.prototype.prepare_search = function ( input_obj, self ) {
 
 	for ( var i = 0; i < word_grid_rows.length; i++ ) {
 		var word_grid_chars = word_grid_rows[ i ].split( ' ' );
+
+		//! NOTE: Does this for-loop do anything? See what happens when this is removed.
 		for ( var x = 0; x < word_grid_chars.length; x++ ) {
 			self.WORD_GRID[ i ] = word_grid_chars;
 			self.WORD_GRID_ROWS[ i ] = word_grid_chars.join( ' ' ).replace( /[^\S\n]+/g, '' );
@@ -350,18 +437,27 @@ WordSearch.prototype.prepare_search = function ( input_obj, self ) {
  * - input_obj (object), contains the grid and word list to be trimmed.
  *
  * Returns: 
- * - (object), on success.
+ * - (object), on success, an object with the trimmed strings is returned
  *		Object format:
  *		{
  * 			'word_grid': ...,
  *			'word_list': ...
  *		}
- * - (null), when the input_object argument is empty.
+ * - (object), when the input_object argument is empty, an object with empty strings is returned.
+ * 		Object format:
+ *		{
+ * 			'word_grid': '',
+ *			'word_list': ''
+ *		}
  *
  */
 WordSearch.prototype.trim_inputs = function ( input_obj ) {
-	if ( 'undefined' === typeof( input_obj ) ) {
-		return;
+	if ( 'undefined' === typeof( input_obj.word_grid ) ||
+			'undefined' === typeof( input_obj.word_list ) ) {
+		return {
+			'word_grid': '',
+			'word_list': ''
+		};
 	}
 
 	var word_grid = input_obj.word_grid;
@@ -601,8 +697,13 @@ WordSearch.prototype.error_handler = function ( error_array ) {
 					break;
 				case 'file':
 					if ( 'invalid' === error_obj.error_type ) {
-						error_msg = 'That file does not exist! Please try again.';
-						jQuery( '#word_search_form label[for="file_upload"]' ).addClass( 'error' );
+						error_msg = 'The file was unreadable. See the expected file format below.';
+						jQuery( '#word_search_form label[for="word_file"]' ).addClass( 'error' );
+					} else if ( 'null' === error_obj.error_type ) {
+						error_msg = 'The input was empty. Select a file' +
+							( this._IS_ADVANCED_UPLOAD ? ', or drag and drop one' : '' ) +
+							' below. The expected file format is listed below, as well.';
+						jQuery( '#word_search_form label[for="word_file"]' ).addClass( 'error' );
 					}
 					break;
 			}
@@ -619,7 +720,7 @@ WordSearch.prototype.error_handler = function ( error_array ) {
  *		item in the word list.
  *
  * Input(s):
- * - e (jQuery Object), the click event object.
+ * - e (object), the click event object.
  *
  * Returns: N/A
  *
@@ -700,7 +801,6 @@ WordSearch.prototype.found_word = function ( row, column, word_length, match_typ
  *
  */
 WordSearch.prototype.remove_word_from_list = function ( word_id, row, col ) {
-	
 	var match_index = col + this._GRID_ROW_LENGTH * row;
 	var untrimmed_index = this.find_obj_in_arr(
 		this.WORDS_TO_MATCH,
@@ -1232,6 +1332,85 @@ WordSearch.prototype.create_display = function () {
 	}
 	list_html += '</ol>';
 	jQuery( '#word_list_container' ).html( list_html );
+};
+
+/**
+ * Function: update_form_file
+ * 
+ * Description: Changes the file upload label to display the name of the file selected for upload.
+ *
+ * Input(s):
+ * - target (object), the element or dataTransfer object that contains the FileList to read.
+ *
+ * Returns: N/A
+ *
+ */
+WordSearch.prototype.update_form_file = function ( files, self ) {
+	if ( 'undefined' !== typeof( files[0] ) ) {
+		var file = files[0];
+		var new_file_name = file.name;
+		var file_form = jQuery( '#word_search_form_file_upload' )[0];
+
+		jQuery( '.file_upload_input label[for="word_search_form_file_upload"]' ).html( new_file_name );
+		self.UPLOADED_FILE_OBJ = file;
+	}
+};
+
+/**
+ * Function: change_form_display
+ * 
+ * Description: Changes the form to display the correct set of form inputs based on the desired
+ *		input method. The two methods should be manual entry and file upload.
+ *
+ * Input(s):
+ * - e (object), the change event object on the #form_method select field. The "self"
+ *		property of the data object attached to the event object is a reference to the current
+ *		class instance.
+ *
+ * Returns: N/A
+ *
+ */
+WordSearch.prototype.change_form_display = function ( e ) {
+	var self = e.data.self;
+	var new_method = e.currentTarget.value;
+
+	self.clear_alerts();
+
+	if ( 'upload' === new_method ) {
+		jQuery( '#form_manual_method' ).hide();
+		jQuery( '#form_upload_method' ).show();
+	} else if ( 'manual' === new_method ) {
+		jQuery( '#form_upload_method' ).hide();
+		jQuery( '#form_manual_method' ).show();
+	}
+};
+
+/**
+ * Function: draggable_exists
+ * 
+ * Description: Figures out if the browser supports drag and drop.
+ *
+ * Input(s): N/A
+ *
+ * Returns:
+ * - true (bool), when the browser supports drag and drop and file reading.
+ * - false (bool), when the browser doesn't support one of the features.
+ *
+ */
+WordSearch.prototype.draggable_exists = function () {
+	var div = document.createElement( 'div' );
+	var draggable = 'draggable' in div;
+	var drag_start_and_drop = ( 'ondragstart' in div && 'ondrop' in div );
+	var file_reader = 'FileReader' in window;
+	var form_data = 'FormData' in window;
+
+	if ( ( draggable || drag_start_and_drop ) &&
+			file_reader &&
+			form_data ) {
+		return true;
+	} else {
+		return false;
+	}
 };
 
 /**

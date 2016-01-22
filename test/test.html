@@ -11,22 +11,73 @@
 			</div>
 			
 			<div id='footer'>
+				<!-- custom data form -->
 				<form id='word_search_form' name='word_search_form' role='form'>
-					<div id='alert-area' class='alert alert-danger'>
-						<ul id='alert-list'></ul>
-					</div>
+			
+					<!-- error fields -->
 					<div class='form-group'>
-						<label for='word_grid'>Word Grid</label>
-						<textarea id='word_search_form_textarea_grid' class='form-control word_search_form_textarea' name='word_grid' placeholder='Enter a word grid...'></textarea>
+						<div id='alert-area' class='alert alert-danger'>
+							<ul id='alert-list'></ul>
+						</div>
 					</div>
+					<!-- /error fields -->
+			
+					<!-- form type selection -->
 					<div class='form-group'>
-						<label for='word_list'>Word List</label>
-						<textarea id='word_search_form_textarea_list' class='form-control word_search_form_textarea' name='word_list' placeholder='Enter a list of words...'></textarea>
+						<label for='form_method'>
+							Manual Entry or File Upload?
+						</label>
+						<br />
+						<select id='form_method' class="form-control">
+							<option value='manual' selected>Manual Entry</option>
+							<option value='upload'>File Upload</option>
+						</select>
 					</div>
+					<!-- /form type selection -->
+			
+					<!-- word and list textarea inputs -->
+					<div id='form_manual_method'>
+						<div class='form-group'>
+							<label for='word_grid'>Word Grid</label>
+							<textarea id='word_search_form_textarea_grid'
+								class='form-control word_search_form_textarea'
+								name='word_grid'
+								placeholder='Enter a word grid...'></textarea>
+						</div>
+						<div class='form-group'>
+							<label for='word_list'>Word List</label>
+							<textarea id='word_search_form_textarea_list'
+								class='form-control word_search_form_textarea'
+								name='word_list'
+								placeholder='Enter a list of words...'></textarea>
+						</div>
+					</div>
+					<!-- /word and list textarea inputs -->
+			
+					<!-- file upload input -->
+					<div id='form_upload_method'>
+						<div class='form-group'>
+							<div class='file_upload_box'>
+								<div class='file_upload_input'>
+									<input id='word_search_form_file_upload'
+										class='file_upload_file'
+										type='file'
+										name='word_file'/>
+									<label for='word_file'><strong>Chose a file</strong><span class='file_upload_dragndrop'> or drag one here</span>.</label>
+								</div>
+								<div class='file_upload_uploading'>Uploading...</div>
+								<div class='file_upload_success'>Done!</div>
+								<div class='file_upload_error'>Error! <span></span>.</div>
+							</div>
+						</div>
+					</div>
+					<!-- /file upload input -->
+					
 					<div class='form-group'>
-						<input id='submit' type='submit' class='btn btn-primary' value='Search!'/>
+						<input id='submit' class='btn btn-primary' type='submit' value='Search!'/>
 					</div>
 				</form>
+				<!-- /custom data form -->
 			</div>
 		</div>
 	</body>

@@ -3,11 +3,13 @@ $font_list:		Verdana, Helvetica, Sans-serif;
 $egg_white:		#EEE;
 $lighter_grey:	#888;
 $light_grey:	#777;
+$grey:			#555;
 $dark_grey:		#333;
 $darker_grey:	#222;
 $dark_red:		#DB2406;
 $light_blue:	#54A9CC;
 
+// Mixins
 @mixin square_width_and_height {
 	width: 20px;
 	height: 20px;
@@ -152,10 +154,65 @@ body {
 #word_search_form {
 	.alert {
 		display: none;
+
+		#alert-list {
+			padding-left: 15px;
+		}
 	}
 
 	.error {
 		color: $dark_red;
+	}
+
+	.form-control, #submit, label {
+		font-family: $font_list;
+	}
+
+	// hide the file uploader by default	
+	#form_upload_method {
+		display: none;
+	}
+
+	.file_upload_box {
+		background-color: $dark_grey;
+		text-align: center;
+		color: $egg_white;
+
+		.file_upload_input {
+			height: 150px;
+
+			label[for='word_search_form_file_upload'] {
+				margin: 65px 0 30px 0;
+
+				strong:hover {
+					color: $light_blue;
+				}
+
+				.file_upload_dragndrop {
+					color: $egg_white;
+					font-weight: 100;
+				}
+			}
+		}
+
+		&.has_advanced_upload {
+			border-radius: 4px !important;
+			outline: 2px dashed $egg_white;
+			outline-offset: -10px;
+
+			& .file_upload_dragndrop {
+				display: inline;
+			}
+
+			&.is_dragover {
+				background-color: $light_grey;
+				outline-offset: -15px;
+			}
+		}
+	}
+
+	#word_search_form_file_upload {
+		display: none;
 	}
 
 	.word_search_form_textarea {
@@ -163,8 +220,14 @@ body {
 		min-height: 200px;
 		max-width: 100%;
 		font-size: 1.1em;
-  		font-family: $font_list;
 	}
+}
+
+.file_upload_dragndrop,
+.file_upload_uploading,
+.file_upload_success,
+.file_upload_error {
+	display: none;
 }
 
 // fixes a glitch with the nav collapse toggle button

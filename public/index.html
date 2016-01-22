@@ -14,7 +14,9 @@
 			<nav class="navbar navbar-default">
 				<div class="container-fluid">
 					<div class="navbar-header">
-						<button type='button' class='navbar-toggle collapsed' data-toggle='collapse' data-target='#navbar-collapse-1' aria-expanded='false'>
+						<button type='button' class='navbar-toggle collapsed' 
+								data-toggle='collapse' data-target='#navbar-collapse-1' 
+								aria-expanded='false'>
 							<span class='sr-only'>Toggle Navigation</span>
 							<span class='icon-bar'></span>
 							<span class='icon-bar'></span>
@@ -24,7 +26,11 @@
 					</div>
 					<div id='navbar-collapse-1' class='navbar-collapse collapse'>
 						<ul class='nav navbar-nav'>
-							<li><a href='http://forest.stfhs.net/forest/?project=javascript-word-search-solver'>About</a></li>
+							<li>
+								<a href='http://forest.stfhs.net/forest/?project=javascript-word-search-solver'>
+									About
+								</a>
+							</li>
 						</ul>
 					</div>
 				</div>
@@ -36,35 +42,86 @@
 			</div>
 			
 			<div id='footer'>
+
+				<!-- custom data form -->
 				<form id='word_search_form' name='word_search_form' role='form'>
-					<div id='alert-area' class='alert alert-danger'>
-						<ul id='alert-list'></ul>
-					</div>
+			
+					<!-- error fields -->
 					<div class='form-group'>
-						<label for='word_grid'>Word Grid</label>
-						<textarea id='word_search_form_textarea_grid' class='form-control word_search_form_textarea' name='word_grid' placeholder='Enter a word grid...'></textarea>
+						<div id='alert-area' class='alert alert-danger'>
+							<ul id='alert-list'></ul>
+						</div>
 					</div>
+					<!-- /error fields -->
+			
+					<!-- form type selection -->
 					<div class='form-group'>
-						<label for='word_list'>Word List</label>
-						<textarea id='word_search_form_textarea_list' class='form-control word_search_form_textarea' name='word_list' placeholder='Enter a list of words...'></textarea>
+						<label for='form_method'>
+							Manual Entry or File Upload?
+						</label>
+						<br />
+						<select id='form_method' class="form-control">
+							<option value='manual' selected>Manual Entry</option>
+							<option value='upload'>File Upload</option>
+						</select>
 					</div>
+					<!-- /form type selection -->
+			
+					<!-- word and list textarea inputs -->
+					<div id='form_manual_method'>
+						<div class='form-group'>
+							<label for='word_grid'>Word Grid</label>
+							<textarea id='word_search_form_textarea_grid'
+								class='form-control word_search_form_textarea'
+								name='word_grid'
+								placeholder='Enter a word grid...'></textarea>
+						</div>
+						<div class='form-group'>
+							<label for='word_list'>Word List</label>
+							<textarea id='word_search_form_textarea_list'
+								class='form-control word_search_form_textarea'
+								name='word_list'
+								placeholder='Enter a list of words...'></textarea>
+						</div>
+					</div>
+					<!-- /word and list textarea inputs -->
+			
+					<!-- file upload input -->
+					<div id='form_upload_method'>
+						<div class='form-group'>
+							<label for='word_file'>File Upload</label>
+							<div class='file_upload_box'>
+								<div class='file_upload_input'>
+									<input id='word_search_form_file_upload'
+										class='file_upload_file'
+										type='file'
+										name='word_file'/>
+									<label for='word_search_form_file_upload'><strong>Chose a file</strong><span class='file_upload_dragndrop'> or drag one here</span>.</label>
+								</div>
+							</div>
+						</div>
+					</div>
+					<!-- /file upload input -->
+					
 					<div class='form-group'>
-						<input id='submit' type='submit' class='btn btn-primary' value='Search!'/>
+						<input id='submit' class='btn btn-primary' type='submit' value='Search!'/>
 					</div>
 				</form>
+				<!-- /custom data form -->
+				
 				<div id='note'>
 					<strong>
 						<em>Psst!</em> Check the JavaScript console in your browser to see more information on each of the word matches.
 					</strong>
 				</div>
 			</div>
-		</div>
-		<script type="text/javascript">
+			<script type="text/javascript">
 
-			// Initialize the WordSearch() class (and call the init() function),
-			// and that's it!
-			var WordSearchClass = new WordSearch();
-			WordSearchClass.init();
-		</script>
+				// Initialize the WordSearch() class (and call the init() function),
+				// and that's it!
+				var WordSearchClass = new WordSearch();
+				WordSearchClass.init();
+			</script>
+		</div>
 	</body>
 </html>

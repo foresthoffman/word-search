@@ -110,15 +110,59 @@ body {
 #word_search_form .alert {
   display: none;
 }
+#word_search_form .alert #alert-list {
+  padding-left: 15px;
+}
 #word_search_form .error {
   color: #db2406;
+}
+#word_search_form .form-control, #word_search_form #submit, #word_search_form label {
+  font-family: Verdana, Helvetica, Sans-serif;
+}
+#word_search_form #form_upload_method {
+  display: none;
+}
+#word_search_form .file_upload_box {
+  background-color: #333333;
+  text-align: center;
+  color: #eeeeee;
+}
+#word_search_form .file_upload_box .file_upload_input {
+  height: 150px;
+}
+#word_search_form .file_upload_box .file_upload_input label[for='word_search_form_file_upload'] {
+  margin: 65px 0 30px 0;
+}
+#word_search_form .file_upload_box .file_upload_input label[for='word_search_form_file_upload'] strong:hover {
+  color: #54a9cc;
+}
+#word_search_form .file_upload_box .file_upload_input label[for='word_search_form_file_upload'] .file_upload_dragndrop {
+  color: #eeeeee;
+  font-weight: 100;
+}
+#word_search_form .file_upload_box .file_upload_dragndrop {
+  display: none;
+}
+#word_search_form .file_upload_box.has_advanced_upload {
+  border-radius: 4px !important;
+  outline: 2px dashed #eeeeee;
+  outline-offset: -10px;
+}
+#word_search_form .file_upload_box.has_advanced_upload .file_upload_dragndrop {
+  display: inline;
+}
+#word_search_form .file_upload_box.has_advanced_upload.is_dragover {
+  background-color: #777777;
+  outline-offset: -15px;
+}
+#word_search_form #word_search_form_file_upload {
+  display: none;
 }
 #word_search_form .word_search_form_textarea {
   width: 100%;
   min-height: 200px;
   max-width: 100%;
   font-size: 1.1em;
-  font-family: Verdana, Helvetica, Sans-serif;
 }
 
 .navbar-toggle .icon-bar + .icon-bar {

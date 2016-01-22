@@ -140,6 +140,9 @@ body {
   color: #eeeeee;
   font-weight: 100;
 }
+#word_search_form .file_upload_box .file_upload_dragndrop {
+  display: none;
+}
 #word_search_form .file_upload_box.has_advanced_upload {
   border-radius: 4px !important;
   outline: 2px dashed #eeeeee;
@@ -160,13 +163,6 @@ body {
   min-height: 200px;
   max-width: 100%;
   font-size: 1.1em;
-}
-
-.file_upload_dragndrop,
-.file_upload_uploading,
-.file_upload_success,
-.file_upload_error {
-  display: none;
 }
 
 .navbar-toggle .icon-bar + .icon-bar {

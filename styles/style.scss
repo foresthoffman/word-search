@@ -195,6 +195,10 @@ body {
 			}
 		}
 
+		.file_upload_dragndrop {
+			display: none;
+		}
+
 		&.has_advanced_upload {
 			border-radius: 4px !important;
 			outline: 2px dashed $egg_white;
@@ -221,13 +225,6 @@ body {
 		max-width: 100%;
 		font-size: 1.1em;
 	}
-}
-
-.file_upload_dragndrop,
-.file_upload_uploading,
-.file_upload_success,
-.file_upload_error {
-	display: none;
 }
 
 // fixes a glitch with the nav collapse toggle button

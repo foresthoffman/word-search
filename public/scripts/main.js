@@ -147,14 +147,6 @@ WordSearch.prototype.loaded = function ( self ) {
 		self.update_form_file( files, self );
 	});
 
-	// file upload field label was clicked
-	jQuery( '.file_upload_input label[for="word_search_form_file_upload"]' ).click(
-		'click',
-		function ( e ) {
-			jQuery( '#word_search_form_file_upload' ).trigger( 'click' );
-		}
-	);
-
 	// form type change event listener
 	jQuery( '#word_search_form #form_method' ).on(
 		'change',
@@ -206,12 +198,12 @@ WordSearch.prototype.get_form_data = function ( e ) {
 	e.preventDefault();
 
 	// disable the button to prevent further submission, while loading
-	e.currentTarget.disabled = true;
+	jQuery( '#submit' ).prop( 'disabled', true ).val( 'Loading...' );
 
 	var self = e.data.self;
-	var form_type = jQuery( '#word_search_form #form_method' ).val();
+	var form_method = jQuery( '#word_search_form #form_method' ).val();
 
-	if ( 'upload' === form_type ) {
+	if ( 'upload' === form_method ) {
 		var the_file = self.UPLOADED_FILE_OBJ;
 
 		if ( null !== the_file ) {
@@ -221,15 +213,9 @@ WordSearch.prototype.get_form_data = function ( e ) {
 			});
 			reader.readAsText( the_file );
 		} else {
-			// var error_array = [
-			// 	{
-			// 		'field_type': 'file',
-			// 		'error_type': 'null'
-			// 	}
-			// ];
-			// self.error_handler( error_array );
+			self.reset_display( '', 'file', self );
 		}
-	} else if ( 'manual' === form_type ) {
+	} else if ( 'manual' === form_method ) {
 		var word_grid_val = jQuery( '#word_search_form_textarea_grid' ).val();
 		var word_list_val = jQuery( '#word_search_form_textarea_list' ).val();
 
@@ -310,11 +296,11 @@ WordSearch.prototype.reset_display = function ( raw_data, origin, self ) {
 		self.search_for_words();
 
 		jQuery( 'li.found' ).on( 'click', self.highlight_match );
-		
 		self.jump_to_id( 'top' );
 	}
 
-	jQuery( '#submit' ).prop( 'disabled', false );
+	// enable the submit button and reset its text to the default
+	jQuery( '#submit' ).prop( 'disabled', false ).val( 'Submit!' );
 };
 
 /**
@@ -697,12 +683,8 @@ WordSearch.prototype.error_handler = function ( error_array ) {
 					break;
 				case 'file':
 					if ( 'invalid' === error_obj.error_type ) {
-						error_msg = 'The file was unreadable. See the expected file format below.';
-						jQuery( '#word_search_form label[for="word_file"]' ).addClass( 'error' );
-					} else if ( 'null' === error_obj.error_type ) {
-						error_msg = 'The input was empty. Select a file' +
-							( this._IS_ADVANCED_UPLOAD ? ', or drag and drop one' : '' ) +
-							' below. The expected file format is listed below, as well.';
+						error_msg = 'The input is invalid. Please submit a file with the proper ' +
+							'formatting (see below for formatting rules).';
 						jQuery( '#word_search_form label[for="word_file"]' ).addClass( 'error' );
 					}
 					break;
@@ -1351,7 +1333,9 @@ WordSearch.prototype.update_form_file = function ( files, self ) {
 		var new_file_name = file.name;
 		var file_form = jQuery( '#word_search_form_file_upload' )[0];
 
-		jQuery( '.file_upload_input label[for="word_search_form_file_upload"]' ).html( new_file_name );
+		jQuery( '.file_upload_input label[for="word_search_form_file_upload"]' ).html( 
+			new_file_name
+		);
 		self.UPLOADED_FILE_OBJ = file;
 	}
 };

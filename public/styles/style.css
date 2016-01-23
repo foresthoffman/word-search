@@ -1,3 +1,9 @@
+@font-face {
+  font-family: 'Glyphicons Halflings';
+  src: url("lib/bootstrap/fonts/glyphicons-halflings-regular.ttf");
+  src: url("lib/bootstrap/fonts/glyphicons-halflings-regular.woff");
+}
+
 html {
   font-size: 1em;
   font-family: Verdana, Helvetica, Sans-serif;
@@ -107,11 +113,20 @@ body {
   font-size: 1.5em;
 }
 
-#word_search_form .alert {
+#word_search_form #alert_area.alert-danger {
   display: none;
 }
-#word_search_form .alert #alert-list {
+#word_search_form #alert_area.alert-danger #alert_list {
   padding-left: 15px;
+}
+#word_search_form .spoiler .spoiler_container .spoiler_content:hover {
+  text-decoration: underline;
+}
+#word_search_form .spoiler .spoiler_container.less {
+  display: none;
+}
+#word_search_form .spoiler_target {
+  display: none;
 }
 #word_search_form .error {
   color: #db2406;

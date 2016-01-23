@@ -12,7 +12,9 @@ module.exports = function( grunt ) {
 		paths: {
 			js: {
 				source: 'scripts/*.js',
-				dest: 'public/scripts/main.js',
+				public_dir: 'public/scripts/',
+				public_dest: '<%= paths.js.public_dir %>main.js',
+				public_ugly: '<%= paths.js.public_dir %>main.min.js',
 				files: [
 					'<%= paths.js.source %>',
 					'Gruntfile.js',
@@ -25,8 +27,7 @@ module.exports = function( grunt ) {
 				files: '<%= paths.sass.dir %>/**/*.scss'
 			},
 			css: {
-				dir: 'public/styles',
-				dest: '<%= paths.css.dir %>/main.css'
+				dir: 'public/styles'
 			},
 			test: {
 				files: 'test/**/*.test.js'
@@ -52,10 +53,33 @@ module.exports = function( grunt ) {
 				}]
 			}
 		},
+		cssmin: {
+			target: {
+				files: [{
+					expand: true,
+					cwd: '<%= paths.css.dir %>',
+					src: ['*.css', '!*.min.css'],
+					dest: '<%= paths.css.dir %>',
+					ext: '.min.css'
+				}]
+			}
+		},
 		concat: {
 			js: {
 				src: '<%= paths.js.source %>',
-				dest: '<%= paths.js.dest %>'
+				dest: '<%= paths.js.public_dest %>'
+			}
+		},
+		uglify: {
+			options: {
+				mangle: {
+					except: ['jQuery']
+				}
+			},
+			target: {
+				files: {
+					'<%= paths.js.public_ugly %>': ['<%= paths.js.public_dest %>']
+				}
 			}
 		},
 		jshint: {
@@ -114,14 +138,14 @@ module.exports = function( grunt ) {
 		watch: {
 			jshint: {
 				files: '<%= paths.js.files %>',
-				tasks: ['jshint', 'concat'],
+				tasks: ['jshint', 'concat', 'uglify'],
 				options: {
 					spawn: false
 				}
 			},
 			sass: {
 				files: '<%= paths.sass.files %>',
-				tasks: ['sass'],
+				tasks: ['sass', 'cssmin'],
 				options: {
 					spawn: false
 				}
@@ -151,7 +175,15 @@ module.exports = function( grunt ) {
 	/* Custom Tasks */
 
 	// building and deployment
-	grunt.registerTask( 'build', ['jshint', 'sass', 'mochaTest', 'concat', 'exec:zip'] );
+	grunt.registerTask( 'build', [
+		'jshint', 
+		'sass', 
+		'cssmin', 
+		'mochaTest', 
+		'concat', 
+		'uglify', 
+		'exec:zip'
+	]);
 	grunt.registerTask( 'deploy', ['build', 'exec:copy'] );
 
 	// automated checks

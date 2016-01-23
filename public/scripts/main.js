@@ -730,12 +730,19 @@ WordSearch.prototype.error_handler = function ( error_array ) {
 WordSearch.prototype.highlight_match = function ( e ) {
 	var index_of_match = jQuery( e.currentTarget ).attr( 'data-match-index' );
 	var letter_elem = jQuery( '#word_table_container .table_data' ).eq( index_of_match );
-	if ( ! jQuery( letter_elem ).hasClass( 'hover_match' ) ) {
-		jQuery( letter_elem ).addClass( 'hover_match' );
+	var li_with_index_selector = 'li.found[data-match-index="' + index_of_match + '"]';
+	var multiple_items_exist = ( jQuery( li_with_index_selector ).length > 1 ? true : false );
+	if ( ! jQuery( letter_elem ).hasClass( 'highlight_match' ) ) {
+		jQuery( letter_elem ).addClass( 'highlight_match' );
 		jQuery( e.currentTarget ).children().addClass( 'highlight_toggle' );
+		if ( multiple_items_exist ) {
+			jQuery( e.currentTarget ).siblings( li_with_index_selector ).children().addClass( 
+				'highlight_toggle'
+			);
+		}
 	} else {
-		jQuery( letter_elem ).removeClass( 'hover_match' );
-		jQuery( 'li.found[data-match-index="' + index_of_match + '"]' ).children().removeClass( 'highlight_toggle' );
+		jQuery( letter_elem ).removeClass( 'highlight_match' );
+		jQuery( li_with_index_selector ).children().removeClass( 'highlight_toggle' );
 	}
 };
 

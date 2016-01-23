@@ -101,7 +101,7 @@ body {
 #word_table_container .diagonal_match {
   color: #db2406;
 }
-#word_table_container .hover_match {
+#word_table_container .highlight_match {
   background-color: #eeeeee;
 }
 

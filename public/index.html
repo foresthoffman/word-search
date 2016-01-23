@@ -6,7 +6,7 @@
 		<script src="scripts/lib/jquery-1.11.3.min.js"></script>
 		<script src="scripts/lib/bootstrap.min.js"></script>
 		<script src="scripts/main.js"></script>
-		<link rel="stylesheet" href="styles/lib/bootstrap.css">
+		<link rel="stylesheet" href="styles/lib/bootstrap/bootstrap.min.css">
 		<link rel="stylesheet" href="styles/style.css">
 	</head>
 	<body>
@@ -48,8 +48,8 @@
 			
 					<!-- error fields -->
 					<div class='form-group'>
-						<div id='alert-area' class='alert alert-danger'>
-							<ul id='alert-list'></ul>
+						<div id='alert_area' class='alert alert-danger'>
+							<ul id='alert_list'></ul>
 						</div>
 					</div>
 					<!-- /error fields -->
@@ -61,7 +61,9 @@
 						</label>
 						<br />
 						<select id='form_method' class="form-control">
-							<option value='manual' selected>Manual Entry</option>
+							<option class='default_option' value='manual' selected>
+								Manual Entry
+							</option>
 							<option value='upload'>File Upload</option>
 						</select>
 					</div>
@@ -69,6 +71,22 @@
 			
 					<!-- word and list textarea inputs -->
 					<div id='form_manual_method'>
+
+						<!-- info field -->
+						<div class='form-group'>
+							<div id='info_area' class='alert alert-info'>
+								<p class='format-blurb'>
+									<span class="glyphicon glyphicon-info-sign"
+										aria-hidden="true"></span>
+									<strong>Formatting: </strong>
+									The word grid and word list may only contain 
+									alphabetical characters, spaces, dashes, apostrophes, 
+									and quotes.
+								</p>
+							</div>
+						</div>
+						<!-- /info field -->
+						
 						<div class='form-group'>
 							<label for='word_grid'>Word Grid</label>
 							<textarea id='word_search_form_textarea_grid'
@@ -88,6 +106,69 @@
 			
 					<!-- file upload input -->
 					<div id='form_upload_method'>
+
+						<!-- info field -->
+						<div class='form-group'>
+							<div id='info-area' class='alert alert-info'>
+								<p class='format-blurb'>
+									<span class="glyphicon glyphicon-info-sign"
+										aria-hidden="true"></span>
+									<strong>Formatting: </strong>
+									Files should contain a word grid followed by a word 
+									list, separated by a marker. Plain text files (".txt" format) 
+									are recommended. The word grid and the word list may only 
+									contain alphabetical characters, spaces, dashes, apostrophes, 
+									and quotes. For example:
+								</p>
+								<br />
+
+								<!-- spoiler target -->
+								<div class='spoiler_target'>
+									<div class='well well-sm'>
+										A B<br />
+										C D
+										<br />
+										<br />
+										===&lt;BREAK&gt;===
+										<br />
+										<br />
+										CD<br />
+										BD<br />
+										AD
+									</div>
+									<p>
+										The marker ("===&lt;BREAK&gt;===") <strong>must</strong>:
+										<ol>
+											<li>Have blank lines above and below it</li>
+											<li>Be on a line of its own</li>
+										</ol>
+									</p>
+								</div>
+								<!-- /spoiler target -->
+
+								<!-- spoiler -->
+								<div class='spoiler'>
+									<div class='spoiler_container more'>
+										<p>
+											<span class="glyphicon glyphicon-chevron-down"
+												aria-hidden="true"></span>
+											<span class='spoiler_content'>Show More</span>
+										</p>
+									</div>
+									<div class='spoiler_container less'>
+										<p>
+											<span class="glyphicon glyphicon-chevron-up"
+												aria-hidden="true"></span>
+											<span class='spoiler_content'>Show Less</span>
+										</p>
+									</div>
+								</div>
+								<!-- /spoiler -->
+
+							</div>
+						</div>
+						<!-- /info field -->
+
 						<div class='form-group'>
 							<label for='word_file'>File Upload</label>
 							<div class='file_upload_box'>
@@ -96,7 +177,10 @@
 										class='file_upload_file'
 										type='file'
 										name='word_file'/>
-									<label for='word_search_form_file_upload'><strong>Chose a file</strong><span class='file_upload_dragndrop'> or drag one here</span>.</label>
+									<label for='word_search_form_file_upload'>
+										<strong>Chose a file</strong>
+										<span class='file_upload_dragndrop'> or drag one here</span>.
+									</label>
 								</div>
 							</div>
 						</div>

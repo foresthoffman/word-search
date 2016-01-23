@@ -147,12 +147,32 @@ WordSearch.prototype.loaded = function ( self ) {
 		self.update_form_file( files, self );
 	});
 
+	// This forces the form method to be the default "manual" setting.
+	// This deals with Firefox caching select field values (which is troublesome for UX).
+	var form_method_current = jQuery( '#form_method' ).val();
+	var form_method_default = jQuery( '#form_method .default_option' ).val();
+	if ( form_method_current !== form_method_default ) {
+		jQuery( '#form_method' ).val( form_method_default );
+	}
+
 	// form type change event listener
 	jQuery( '#word_search_form #form_method' ).on(
 		'change',
 		{ 'self': self },
 		self.change_form_display
 	);
+
+	jQuery( '.spoiler' ).click( function( e ) {
+		var spoiler = e.currentTarget;
+		if ( ! jQuery( spoiler ).hasClass( 'spoil_toggled' ) ) {
+			jQuery( spoiler ).addClass( 'spoil_toggled' );
+			jQuery( spoiler ).siblings( '.spoiler_target' ).show();
+		} else {
+			jQuery( spoiler ).removeClass( 'spoil_toggled' );
+			jQuery( spoiler ).siblings( '.spoiler_target' ).hide();
+		}
+		jQuery( spoiler ).children( '.spoiler_container' ).toggle();
+	});
 
 	// submit button event listener
 	jQuery( '#submit' ).on( 'click', { 'self': self }, self.get_form_data );
@@ -689,8 +709,8 @@ WordSearch.prototype.error_handler = function ( error_array ) {
 					}
 					break;
 			}
-			jQuery( '#word_search_form #alert-list' ).append( '<li>' + error_msg + '</li>' );
-			jQuery( '#word_search_form #alert-area' ).show();
+			jQuery( '#word_search_form #alert_list' ).append( '<li>' + error_msg + '</li>' );
+			jQuery( '#word_search_form #alert_area' ).show();
 		}
 	}
 };
@@ -1412,8 +1432,8 @@ WordSearch.prototype.clear_alerts = function () {
 	
 	// hide the errors
 	jQuery( '#word_search_form label' ).removeClass( 'error' );
-	jQuery( '#word_search_form #alert-area' ).hide();
-	jQuery( '#word_search_form #alert-list' ).html( '' );
+	jQuery( '#word_search_form #alert_area' ).hide();
+	jQuery( '#word_search_form #alert_list' ).html( '' );
 };
 
 /**

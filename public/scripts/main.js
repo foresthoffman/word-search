@@ -662,11 +662,13 @@ WordSearch.prototype.validate_data = function ( input_obj, origin, self ) {
  * Input(s):
  * - error_array (object array), an array of error objects. See the validate_data function 
  *		for details on return values.
+ * - self (object), contains a reference to the current instance of the
+ *		WordSearch class.
  *
  * Returns: N/A
  *
  */
-WordSearch.prototype.error_handler = function ( error_array ) {
+WordSearch.prototype.error_handler = function ( error_array, self ) {
 	if ( 0 !== error_array.length ) {
 		for ( var i = 0; i < error_array.length; i++ ) {
 			var error_obj = error_array[ i ];
@@ -708,6 +710,7 @@ WordSearch.prototype.error_handler = function ( error_array ) {
 			}
 			jQuery( '#word_search_form #alert_list' ).append( '<li>' + error_msg + '</li>' );
 			jQuery( '#word_search_form #alert_area' ).show();
+			self.jump_to_id( 'alert_area' );
 		}
 	}
 };

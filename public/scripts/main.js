@@ -97,7 +97,7 @@ WordSearch.prototype.init = function ( default_file_path ) {
 /**
  * Function: loaded
  * 
- * Description: Calls get_file_data and creates a form submission event listener.
+ * Description: Calls get_file_data and creates form event listeners.
  *
  * Input(s):
  * - self (object), contains a reference to the current instance of the
@@ -319,7 +319,7 @@ WordSearch.prototype.reset_display = function ( raw_data, origin, self ) {
 		self.jump_to_id( 'top' );
 	}
 
-	// enable the submit button and reset its text to the default
+	// enable the submit button and reset its text to the default value
 	jQuery( '#submit' ).prop( 'disabled', false ).val( 'Submit!' );
 };
 
@@ -349,8 +349,9 @@ WordSearch.prototype.sort_object_array = function ( a, b ) {
  * Description: Find the first instance of an object with a specific property in an array.
  *
  * Input(s):
- * - a (object), contains an element of the object array.
- * - b (object), contains the next element of the object array.
+ * - arr (array), the array to iterate through.
+ * - prop (string), the unique property to look for, in this case "word_id".
+ * - value (int), the value to look for.
  *
  * Returns:
  * - (-1) (int), the object was not found.
@@ -390,7 +391,7 @@ WordSearch.prototype.find_obj_in_arr = function ( arr, prop, value ) {
  * Returns: N/A
  *
  */
-WordSearch.prototype.prepare_search = function ( input_obj, self ) {	
+WordSearch.prototype.prepare_search = function ( input_obj, self ) {
 	var word_grid = input_obj.word_grid;
 	var word_list = input_obj.word_list;
 	
@@ -402,12 +403,8 @@ WordSearch.prototype.prepare_search = function ( input_obj, self ) {
 
 	for ( var i = 0; i < word_grid_rows.length; i++ ) {
 		var word_grid_chars = word_grid_rows[ i ].split( ' ' );
-
-		//! NOTE: Does this for-loop do anything? See what happens when this is removed.
-		for ( var x = 0; x < word_grid_chars.length; x++ ) {
-			self.WORD_GRID[ i ] = word_grid_chars;
-			self.WORD_GRID_ROWS[ i ] = word_grid_chars.join( ' ' ).replace( /[^\S\n]+/g, '' );
-		}
+		self.WORD_GRID[ i ] = word_grid_chars;
+		self.WORD_GRID_ROWS[ i ] = word_grid_chars.join( ' ' ).replace( /[^\S\n]+/g, '' );
 	}
 
 	// reset WORDS_TO_MATCH and WORDS_TO_MATCH_TRIMMED
@@ -718,7 +715,7 @@ WordSearch.prototype.error_handler = function ( error_array ) {
 /**
  * Function: highlight_match
  * 
- * Description: Highlights the letter on the word grid at the index attached to a found word
+ * Description: Highlights the letter on the word grid at the index attached to the clicked
  *		item in the word list.
  *
  * Input(s):
@@ -869,7 +866,7 @@ WordSearch.prototype.search_for_words = function () {
 /**
  * Function: search_row
  * 
- * Description: Searches every row in the word grid (using the WORD_GRID_ROWS global, 
+ * Description: Searches every row in the word grid (using the WORD_GRID_ROWS array, 
  *		which stores rows as strings) and compares each row against the word list to find a match.
  *		First they are compared normally, then the word list is reversed and compared again.
  *		When a word is found, the match is logged, highlighted, and removed from the word list.
@@ -1060,13 +1057,13 @@ WordSearch.prototype.search_column = function () {
  *		and right of every character. Characters in positions on the grid that could not possibly 
  *		have diagonal matches will be ignored. If the dimensions of the grid are not large enough 
  *		to allow for diagonal matches with the provided word list, a notification will be logged 
- *		and the function will return nothing.  The length of the search at each character is 
+ *		and the function will return nothing. The length of the search at each character is 
  *		determined by the grid dimensions, the character's position on the grid, and the length of
  *		the longest word. The search length can't be larger than the length of the shortest word. 
  *		If the search length is less than the maximum diagonal length on the grid, a string will 
  *		be generated and compared against the word list. When a word is found, the match is logged,
  *		highlighted, and removed from the word list. To mitigate the change in the length of the 
- *		word list, the for-loop counter is decremented by one.
+ *		word list, the for-loop counter is decremented.
  *
  * Input(s): N/A
  *
@@ -1302,7 +1299,7 @@ WordSearch.prototype.search_diagonal = function () {
 /**
  * Function: create_display
  * 
- * Description: Dynamically generates the word grid and the word list.
+ * Description: Dynamically generates the word grid and the word list on the page.
  *
  * Input(s): N/A
  *
@@ -1349,7 +1346,9 @@ WordSearch.prototype.create_display = function () {
  * Description: Changes the file upload label to display the name of the file selected for upload.
  *
  * Input(s):
- * - target (object), the element or dataTransfer object that contains the FileList to read.
+ * - files (object), the FileList object containing the file to read from.
+ * - self (object), contains a reference to the current instance of the
+ *		WordSearch class.
  *
  * Returns: N/A
  *
@@ -1375,7 +1374,7 @@ WordSearch.prototype.update_form_file = function ( files, self ) {
  *
  * Input(s):
  * - e (object), the change event object on the #form_method select field. The "self"
- *		property of the data object attached to the event object is a reference to the current
+ *		property of the "data" object attached to the event object is a reference to the current
  *		class instance.
  *
  * Returns: N/A
@@ -1405,7 +1404,7 @@ WordSearch.prototype.change_form_display = function ( e ) {
  *
  * Returns:
  * - true (bool), when the browser supports drag and drop and file reading.
- * - false (bool), when the browser doesn't support one of the features.
+ * - false (bool), when the browser doesn't support drag and drop or file reading.
  *
  */
 WordSearch.prototype.draggable_exists = function () {
@@ -1446,10 +1445,11 @@ WordSearch.prototype.clear_alerts = function () {
 /**
  * Function: jump_to_id
  * 
- * Description: Directs the screen to the specified element id, by changing the URL.
+ * Description: Directs the screen to the specified element id, by changing the URL hash.
  *
  * Input(s):
- * - id (string), the DOM element id in the form of "#my_element".
+ * - id (string), the DOM element id in the form of "#my_element" or "my_element" (without the
+ *		"#" in front).
  *
  * Returns: N/A
  *
@@ -1458,7 +1458,7 @@ WordSearch.prototype.jump_to_id = function ( id ) {
 	if ( '' !== id ) {
 		var valid_id = id.replace( /^(#)*/, '' );
 		
-		// force the URL hash to be reset
+		// reset the URL hash
 		window.location.hash = '';
 		window.location.hash = valid_id;
 	}

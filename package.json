@@ -2,6 +2,7 @@
   "name": "word-search",
   "version": "0.2.0",
   "description": "JavaScript Word Search",
+  "private": "true",
   "repository": {
     "type": "git",
     "url": "https://github.com/foresthoffman/word-search.git"
@@ -14,25 +15,25 @@
   "homepage": "http://forest.stfhs.net/forest/apps/word-search",
   "devDependencies": {
     "chai": "^3.4.1",
-    "grunt": "^0.4.5",
-    "grunt-cli": "^0.1.13",
-    "grunt-concurrent": "^2.0.2",
-    "grunt-contrib-concat": "^0.5.1",
-    "grunt-contrib-cssmin": "^0.14.0",
-    "grunt-contrib-jshint": "^0.11.2",
-    "grunt-contrib-sass": "^0.9.2",
-    "grunt-contrib-uglify": "^0.11.0",
-    "grunt-contrib-watch": "^0.6.1",
-    "grunt-exec": "^0.4.6",
-    "grunt-mocha-test": "^0.12.7",
     "jsdom": "^7.2.2",
-    "load-grunt-tasks": "^3.2.0",
     "mocha": "^2.3.4",
-    "sinon": "^1.17.2",
-    "time-grunt": "^1.2.1"
+    "npm-watch": "^0.1.7",
+    "sinon": "^1.17.2"
   },
   "dependencies": {
     "bootstrap": "^3.3.6",
     "jquery": "^2.1.4"
+  },
+  "watch": {
+    "js": "scripts/*.js"
+  },
+  "scripts": {
+    "deploy": "./cp_public public/ ../foresthoffman.github.io/ || true",
+    "sass": "sass --scss -t compressed styles/*.scss public/styles/style.min.css",
+    "sassWatch": "sass --watch --scss -t compressed styles/style.scss:public/styles/style.min.css",
+    "js": "uglifyjs scripts/*.js -cmo public/scripts/main.min.js",
+    "test": "mocha -R spec -r test/utils/jsdom-config.js test/*.test.js || true",
+    "testWatch": "mocha -w -R spec -r test/utils/jsdom-config.js test/*.test.js || true",
+    "watch": "npm-watch"
   }
 }

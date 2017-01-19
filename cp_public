@@ -1,0 +1,31 @@
+#!/bin/bash
+
+##
+# cp_public
+#
+# Copies the source directory to the target directory.
+#
+# Usage: cp_public /path/to/source /path/to/dist
+# 
+# The package.json file, from which the package name is collected is relative to where this script
+# is executed. It uses the current directory. That is why this script should be placed next to the
+# package.json file in the project's hierarchy.
+##
+
+if [ ! $# == 2 ] || [ ! -d $1 ] || [ ! -d $2 ]; then
+	echo "cp_public /path/to/source /path/to/dist"
+	exit
+fi
+
+# the name property line from the package.json file in the current directory
+name_line=$(grep -Ei "^\s*\"name\":\s\".*\",$" package.json | grep -oEi "[^\",]+")
+
+# the package name by itself
+name=$(echo $name_line | cut -d " " -f 3)
+
+path_reg="\/"
+
+source_path="$(echo ${1%$path_reg})/"
+dist_path="$(echo ${2%$path_reg})/$name"
+
+cp -r $source_path $dist_path

@@ -18,11 +18,12 @@
     "jsdom": "^7.2.2",
     "mocha": "^2.3.4",
     "npm-watch": "^0.1.7",
-    "sinon": "^1.17.2"
+    "sinon": "^1.17.2",
+    "uglify-js": "^3.3.8"
   },
   "dependencies": {
     "bootstrap": "^3.3.6",
-    "jquery": "^2.1.4"
+    "jquery": "^3.3.1"
   },
   "watch": {
     "js": "scripts/*.js"
@@ -31,9 +32,9 @@
     "deploy": "./cp_public public/ ../foresthoffman.github.io/ || true",
     "sass": "sass --scss -t compressed styles/*.scss public/styles/style.min.css",
     "sassWatch": "sass --watch --scss -t compressed styles/style.scss:public/styles/style.min.css",
-    "js": "uglifyjs scripts/*.js -cmo public/scripts/main.min.js",
-    "test": "mocha -R spec -r test/utils/jsdom-config.js test/*.test.js || true",
-    "testWatch": "mocha -w -R spec -r test/utils/jsdom-config.js test/*.test.js || true",
+    "js": "./node_modules/uglify-js/bin/uglifyjs scripts/*.js -cmo public/scripts/main.min.js",
+    "test": "/usr/local/bin/mocha -R spec -r test/utils/jsdom-config.js test/*.test.js || true",
+    "testWatch": "/usr/local/bin/mocha -w -R spec -r test/utils/jsdom-config.js test/*.test.js || true",
     "watch": "npm-watch"
   }
 }

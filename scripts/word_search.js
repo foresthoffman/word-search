@@ -32,7 +32,7 @@
 
 // mitigating scope issues with jQuery and Mocha
 if ( 'undefined' === typeof( jQuery ) ) {
-	jQuery = require( './lib/jquery-1.11.3.min.js' );
+	jQuery = require( './lib/jquery.min.js' );
 }
 
 // this is necessary for testing (compatibility with NodeJS)

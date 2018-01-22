@@ -29,7 +29,7 @@
     "js": "scripts/*.js"
   },
   "scripts": {
-    "deploy": "./cp_public public/ ../foresthoffman.github.io/ || true",
+    "deploy": "./cp_public public/ ../../foresthoffman.github.io/html/ || true",
     "sass": "sass --scss -t compressed styles/*.scss public/styles/style.min.css",
     "sassWatch": "sass --watch --scss -t compressed styles/style.scss:public/styles/style.min.css",
     "js": "./node_modules/uglify-js/bin/uglifyjs scripts/*.js -cmo public/scripts/main.min.js",

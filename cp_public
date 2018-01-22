@@ -25,7 +25,11 @@ name=$(echo $name_line | cut -d " " -f 3)
 
 path_reg="\/"
 
-source_path="$(echo ${1%$path_reg})/"
+source_path="$(echo ${1%$path_reg})/*"
 dist_path="$(echo ${2%$path_reg})/$name"
 
+# clear out the destination path first
+rm -rf $dist_path/*
+
+# then copy all the files from the source into the path
 cp -r $source_path $dist_path
